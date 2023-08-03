@@ -90,7 +90,7 @@ def plot_targets_dotplot(
     disease_drug_targets = disease_targets[disease_targets['known_drug'] > 0].copy()
     drug_target_genes = disease_targets.target_name.tolist()
     if split_drug_targets_by_phase:
-        disease_drug_targets['phase_class'] = pd.cut(disease_drug_targets.known_drug, [0, 0.2, 0.7, 1, 1.1], include_lowest=False, labels = ['druggable', 'safe', 'effective', 'approved'])
+        disease_drug_targets['phase_class'] = pd.cut(disease_drug_targets.known_drug, [0, 0.1, 0.2, 0.7, 1.1], include_lowest=False, labels = ['druggable','safe', 'effective', 'approved'])
         pl_target_dict = disease_drug_targets.groupby('phase_class')['target_name'].apply(list).to_dict()
     else:
         pl_target_dict = {}
@@ -135,6 +135,9 @@ targets = pd.read_csv(data_dir + 'TargetDiseasePairs_OpenTargets_cellXgeneID_120
 
 ## Load pseudobulk_object
 pbulk_adata = sc.read_h5ad(data_dir + f'cellxgene_targets_{disease_ontology_id.replace(":", "_")}.pbulk_all_OT_targets.h5ad')
+
+## Exclude low quality cells
+pbulk_adata = pbulk_adata[pbulk_adata.obs['high_level_cell_type_ontology_term_id'] != 'low_quality_annotation'].copy()
 
 ## Preprocess expression
 cpms = scipy.sparse.csr_matrix(pbulk_adata.X.T / pbulk_adata.obs['size_factors'].values.flatten()) * 1000000

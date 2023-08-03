@@ -1,3 +1,4 @@
+from typing import List
 import os
 import anndata
 import pandas as pd
@@ -9,7 +10,7 @@ from rpy2.robjects.packages import STAP
 
 def _run_glmGamPoi_DE(pbulk_adata, 
                      design = '~ disease',
-                    ref_level = 'normal',
+                    ref_level = None,
                     contrast = 'disease'
                     ):
     '''
@@ -22,11 +23,15 @@ def _run_glmGamPoi_DE(pbulk_adata,
     '''
     
     ## Define R function
+    if ref_level is None:
+        ref_level = 'NULL'
+    else:
+        ref_level = f'"{ref_level}"'
+
     glmgampoi_str = f'''
         library(SingleCellExperiment)
         library(glmGamPoi)
         library(scran)
-        library(scater)
 
         run_de <- function(args){{
             pbulk_sdata_X <- args[[1]]
@@ -36,7 +41,7 @@ def _run_glmGamPoi_DE(pbulk_adata,
             sce <- SingleCellExperiment(assays = list(counts = t(pbulk_sdata_X)), colData = pbulk_sdata_obs)
 
             ## Fit
-            fit <- glm_gp(sce, design = {design}, reference_level = '{ref_level}', size_factors = colData(sce)[['size_factors']])
+            fit <- glm_gp(sce, design = {design}, reference_level = {ref_level}, size_factors = colData(sce)[['size_factors']])
 
             ## Test 
             de_res <- test_de(fit, contrast = '{contrast}')    
@@ -61,7 +66,7 @@ def _run_glmGamPoi_DE(pbulk_adata,
     de_res_df = r_pkg.run_de(args).to_csvfile('./DE_results.csv')
     de_res_df = pd.read_csv('./DE_results.csv', index_col=0)
     de_res_df.index = de_res_df['gene_name']
-    de_res_df.drop('name', 1, inplace=True)
+    de_res_df.drop('name', axis=1, inplace=True)
     os.remove('./DE_results.csv')
     return(de_res_df)
 
@@ -74,17 +79,26 @@ def _run_glmGamPoi_DE(pbulk_adata,
 #     return(pbulk_adata)
 
 
-def celltype_marker_targets(pbulk_adata: anndata.AnnData, min_replicates: int =3):
+def celltype_marker_targets(pbulk_adata: anndata.AnnData, 
+                            min_replicates: int =3,
+                            confounders: List[str] = ['suspension_type', 'assay']
+                            ):
     # Keep only normal tissue
     pbulk_adata_test = pbulk_adata[pbulk_adata.obs['disease'] == 'normal'].copy()
 
     # Exclude cell types with insufficient replicates
-    n_replicates = pbulk_adata.obs.value_counts(['high_level_cell_type_ontology_term_id', 'disease']).reset_index()
-    ct_labels = n_replicates[n_replicates[0] >= min_replicates]['high_level_cell_type_ontology_term_id'].unique()
-    pbulk_adata = pbulk_adata[pbulk_adata.obs['high_level_cell_type_ontology_term_id'].isin(ct_labels)].copy()
+    n_replicates = pbulk_adata_test.obs.value_counts(['high_level_cell_type_ontology_term_id', 'disease']).reset_index()
+    ct_labels = n_replicates[n_replicates['count'] >= min_replicates]['high_level_cell_type_ontology_term_id'].unique()
+    pbulk_adata_test = pbulk_adata_test[pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].isin(ct_labels)].copy()
 
     pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].str.replace(":", "_").astype('category')
     ct_categories = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.categories.tolist()
+
+    ## Select confounders with multiple values
+    for c in confounders:
+        if pbulk_adata_test.obs[c].nunique() == 1:
+            confounders.remove(c)
+    confounders_str = '+'.join(confounders)
 
     celltype_de_results = pd.DataFrame()
     for ct_term in pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].unique():
@@ -92,14 +106,14 @@ def celltype_marker_targets(pbulk_adata: anndata.AnnData, min_replicates: int =3
         ct_categories.remove(ct_term)
         ct_categories.append(ct_term)
         pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.reorder_categories(ct_categories)
-
+        
         de_results = _run_glmGamPoi_DE(
             pbulk_adata_test,
-            design = '~ assay + suspension_type + high_level_cell_type_ontology_term_id', # + n_cells
-            ref_level = 'normal',
-            contrast = f'high_level_cell_type_ontology_term_id{ct_term}'
-            )
+                design = f'~ {confounders_str} + high_level_cell_type_ontology_term_id', # + n_cells
+                ref_level = None,
+                contrast = f'high_level_cell_type_ontology_term_id{ct_term}'
+                )
         de_results['high_level_cell_type_ontology_term_id'] = ct_term
         celltype_de_results = pd.concat([celltype_de_results, de_results], axis=0)
 
-
+    return(celltype_de_results)

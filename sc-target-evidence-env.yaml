@@ -1,0 +1,15 @@
+name: sc-target-evidence-env
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - notebook
+  - pip
+  - pip:
+      - scanpy
+      - pandas
+      - numpy
+      - cellxgene_census
+      - tiledbsoma
+      - obonet
+      - scipy

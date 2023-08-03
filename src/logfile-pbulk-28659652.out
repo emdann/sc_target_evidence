@@ -1,0 +1,45 @@
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@node-13-26>
+Subject: Job 28659652: <python process_sc_data.py MONDO:0004975 --output_dir /nfs/team205/ed6/bin/sc_target_evidence/data/> in cluster <farm5> Exited
+
+Job <python process_sc_data.py MONDO:0004975 --output_dir /nfs/team205/ed6/bin/sc_target_evidence/data/> was submitted from host <farm5-head1> by user <ed6> in cluster <farm5> at Thu Jul 20 12:03:56 2023
+Job was executed on host(s) <node-13-26>, in queue <normal>, as user <ed6> in cluster <farm5> at Thu Jul 20 12:05:43 2023
+</nfs/users/nfs_e/ed6> was used as the home directory.
+</nfs/team205/ed6/bin/sc_target_evidence/src> was used as the working directory.
+Started at Thu Jul 20 12:05:43 2023
+Terminated at Thu Jul 20 12:41:25 2023
+Results reported at Thu Jul 20 12:41:25 2023
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python process_sc_data.py MONDO:0004975 --output_dir /nfs/team205/ed6/bin/sc_target_evidence/data/
+
+------------------------------------------------------------
+
+TERM_MEMLIMIT: job killed after reaching LSF memory usage limit.
+Exited with exit code 143.
+
+Resource usage summary:
+
+    CPU time :                                   2061.00 sec.
+    Max Memory :                                 50174 MB
+    Average Memory :                             15394.40 MB
+    Total Requested Memory :                     50000.00 MB
+    Delta Memory :                               -174.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                2570
+    Run time :                                   2141 sec.
+    Turnaround time :                            2249 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <logfile-pbulk-28659652.err> for stderr output of this job.
+

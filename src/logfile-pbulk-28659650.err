@@ -1,0 +1,36 @@
+Traceback (most recent call last):
+  File "/nfs/team205/ed6/bin/sc_target_evidence/src/process_sc_data.py", line 279, in <module>
+    pbulk_adata = anndata2pseudobulk(adata, 
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/bin/sc_target_evidence/src/process_sc_data.py", line 227, in anndata2pseudobulk
+    sample_dummies = pd.get_dummies(adata.obs["pseudobulk_sample"])[pseudobulk_obs.index].values
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/frame.py", line 3773, in __getitem__
+    data = self._take_with_is_copy(indexer, axis=1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/generic.py", line 3948, in _take_with_is_copy
+    result = self._take(indices=indices, axis=axis)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/generic.py", line 3932, in _take
+    new_data = self._mgr.take(
+               ^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/internals/managers.py", line 963, in take
+    return self.reindex_indexer(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/internals/managers.py", line 740, in reindex_indexer
+    new_blocks = self._slice_take_blocks_ax0(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/internals/managers.py", line 898, in _slice_take_blocks_ax0
+    nb = blk.take_nd(taker, axis=0, new_mgr_locs=mgr_locs)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/internals/blocks.py", line 945, in take_nd
+    new_values = algos.take_nd(
+                 ^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/array_algos/take.py", line 117, in take_nd
+    return _take_nd_ndarray(arr, indexer, axis, fill_value, allow_fill)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/array_algos/take.py", line 162, in _take_nd_ndarray
+    func(arr, indexer, out, fill_value)
+  File "/nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env/lib/python3.11/site-packages/pandas/core/array_algos/take.py", line 369, in wrapper
+    f(arr, indexer, out, fill_value=fill_value)
+KeyboardInterrupt

@@ -1,0 +1,50 @@
+Loading data from cellxgene...
+Getting anndata
+Getting total counts x cell
+Cleaning cell ontologies...
+Pseudo-bulking...
+Saving...
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@node-11-4-3>
+Subject: Job 28659690: <python process_sc_data.py MONDO:0004514 --output_dir /nfs/team205/ed6/bin/sc_target_evidence/data/> in cluster <farm5> Done
+
+Job <python process_sc_data.py MONDO:0004514 --output_dir /nfs/team205/ed6/bin/sc_target_evidence/data/> was submitted from host <farm5-head1> by user <ed6> in cluster <farm5> at Thu Jul 20 12:04:06 2023
+Job was executed on host(s) <node-11-4-3>, in queue <normal>, as user <ed6> in cluster <farm5> at Thu Jul 20 12:49:45 2023
+</nfs/users/nfs_e/ed6> was used as the home directory.
+</nfs/team205/ed6/bin/sc_target_evidence/src> was used as the working directory.
+Started at Thu Jul 20 12:49:45 2023
+Terminated at Thu Jul 20 13:04:14 2023
+Results reported at Thu Jul 20 13:04:14 2023
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+python process_sc_data.py MONDO:0004514 --output_dir /nfs/team205/ed6/bin/sc_target_evidence/data/
+
+------------------------------------------------------------
+
+Successfully completed.
+
+Resource usage summary:
+
+    CPU time :                                   796.01 sec.
+    Max Memory :                                 13221 MB
+    Average Memory :                             7846.04 MB
+    Total Requested Memory :                     50000.00 MB
+    Delta Memory :                               36779.00 MB
+    Max Swap :                                   -
+    Max Processes :                              4
+    Max Threads :                                650
+    Run time :                                   868 sec.
+    Turnaround time :                            3608 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file <logfile-pbulk-28659690.err> for stderr output of this job.
+

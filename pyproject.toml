@@ -20,7 +20,7 @@ urls.Source = "https://github.com/emdann/sc_target_evidence"
 urls.Home-page = "https://github.com/emdann/sc_target_evidence"
 dependencies = [
     # "anndata",
-    # "scanpy",
+    "scanpy",
     "obonet",
     # for debug logging (referenced from the issue template)
     "session-info"

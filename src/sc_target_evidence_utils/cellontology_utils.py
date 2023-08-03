@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List,Union
 
 import networkx as nx
 import numpy as np
@@ -81,7 +81,7 @@ def get_ancestors(term_id: str, graph: MultiDiGraph, levels: int = 3):
 
 
 def rename_cts_to_high_level(
-    original_terms: List[str], graph: MultiDiGraph, term_blacklist: List[str] = None, depth_factor: int = 5
+    original_terms: List[str], graph: MultiDiGraph, term_blacklist: Union[List[str], None] = None, depth_factor: int = 5
 ):
     """
     Rename cell types to common higher level annotation when present.

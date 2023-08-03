@@ -21,7 +21,9 @@ urls.Home-page = "https://github.com/emdann/sc_target_evidence"
 dependencies = [
     # "anndata",
     "scanpy",
+    "cellxgene_census",
     "obonet",
+    "rpy2>=3.3.5", # for glmGamPoi
     # for debug logging (referenced from the issue template)
     "session-info"
 ]

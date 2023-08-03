@@ -8,8 +8,19 @@ from scanpy.metrics import confusion_matrix
 from .cellontology_utils import ontology2name
 
 
-def plot_celltype_rename(adata_obs, graph: MultiDiGraph, figsize=(10, 15)):
-    """Plot original vs aggregated cell types (using output to rename_cts_to_high_level)"""
+def plot_celltype_rename(adata_obs, graph: MultiDiGraph, savedir=None):
+    """
+    Plot original vs aggregated cell types (using output to rename_cts_to_high_level)
+    
+    Parameters
+    ----------
+    adata_obs
+        obs of anndata with original and high level cell types.
+    graph
+        Cell ontology graph
+    savedir
+        Directory to save plots.
+    """
 
     # Make confusion table
     confmat = confusion_matrix(
@@ -40,3 +51,9 @@ def plot_celltype_rename(adata_obs, graph: MultiDiGraph, figsize=(10, 15)):
         plt.ylabel("Original label", fontsize=14)  # Increase the font size of the y-axis label
 
         plt.xticks(rotation=90)
+
+        if savedir is not None:
+            disease_ontology_id = adata_obs['disease_ontology_id'][0]
+            plt.savefig(f'{savedir}/cellxgene_{disease_ontology_id.replace(":","_")}.celltype_harmonization.pdf', bbox_inches='tight')
+            plt.savefig(f'{savedir}/cellxgene_{disease_ontology_id.replace(":","_")}.celltype_harmonization.png', bbox_inches='tight')
+   

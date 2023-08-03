@@ -7,7 +7,7 @@ outdir=/nfs/team205/ed6/bin/sc_target_evidence/data/
 disease_ids=$(cat /nfs/team205/ed6/bin/sc_target_evidence/data/all_diseaseIDs.txt)
 
 for d in $disease_ids; do \
-    echo "python process_sc_data.py ${d} --output_dir ${outdir}" | \
+    echo "python process_sc_data.py ${d} --output_dir ${outdir}"  | \
         bsub -G teichlab -o logfile-pbulk-%J.out -e logfile-pbulk-%J.err -M50000 -R "select[mem>50000] rusage[mem=50000]" 
 done 
 

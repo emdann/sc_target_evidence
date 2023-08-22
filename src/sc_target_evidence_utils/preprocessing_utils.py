@@ -63,6 +63,9 @@ def anndata2pseudobulk(
     pseudobulk_adata = pseudobulk_adata[pseudobulk_adata.obs['n_cells'] >= min_ncells].copy()
     return(pseudobulk_adata)
 
+def clean_disease_name(disease_name):
+    return "_".join(disease_name.split(' ')).replace('/', "_").replace('-', "_")
+
 
 # def prep_pbulk_adata(pbulk_adata, data_dir):
 #         graph = cellontology_utils.get_cellontology_graph(data_dir)

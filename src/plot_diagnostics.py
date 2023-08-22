@@ -1,4 +1,5 @@
 ### Make diagnostic plots ###
+import os
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -8,6 +9,7 @@ import scipy
 import anndata
 
 import obonet
+from sc_target_evidence_utils import preprocessing_utils
 
 obo_file = "../data/cl.obo"  # downloaded from http://obofoundry.org/ontology/cl.html
 
@@ -113,9 +115,7 @@ def plot_targets_dotplot(
             pbulk_adata, 
             pl_target_dict, 'high_level_cell_type', 
             gene_symbols='feature_name', 
-            layer='logcounts',
-        
-            )
+            layer='logcounts')
 
     dpl.style(cmap='magma', edge_lw=0)
     dpl.legend(title =  'Mean\nlog-normalized\nexpression')
@@ -126,7 +126,67 @@ def plot_targets_dotplot(
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.target_expression.png', bbox_inches='tight')
     
     plt.show()
+    
+    
+def plot_celltype_distribution(pbulk_adata, savedir=None):  
+    '''
+    Plot clustered heatmap of cell type matches per donor.
+    '''
+    df = pbulk_adata.obs.copy()
+    df['donor_id'] = df['donor_id'].astype('str')
+    conf_mat = sc.metrics.confusion_matrix('donor_id', 'high_level_cell_type', df, normalize=False)
 
+    disease_palette = sns.color_palette("Set1", n_colors=len(df['disease'].cat.categories))
+    disease_color_mapping = dict(zip(df['disease'].cat.categories, disease_palette))
+
+    fig_height, fig_width = (x /10 for x in conf_mat.shape)
+
+
+    plt.figure(figsize=(fig_height, fig_width))
+
+    # Clustermap for the confusion matrix
+    col_colors = [disease_color_mapping[x] for x in df['disease']]
+    clustermap = sns.clustermap(
+        conf_mat.T, 
+        figsize=(12, 5), 
+        col_colors=col_colors,
+        xticklabels=True,
+        yticklabels=True
+    )
+    legend_handles = [plt.Line2D([0], [0], marker='o', color='w', label=cat, markerfacecolor=disease_color_mapping[cat], markersize=10) for cat in df['disease'].cat.categories]
+    plt.legend(
+        handles=legend_handles, 
+        title='Disease', frameon=False, 
+        loc='upper right', bbox_to_anchor=(0, 1.0))
+
+    if savedir is not None:
+        plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.celltype_distribution.pdf', bbox_inches='tight')
+        plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.celltype_distribution.png', bbox_inches='tight')
+    
+    plt.show()
+
+    
+def plot_var_stats(pbulk_adata, savedir=None):
+    '''Plot mean expression vs number of samples expressing.'''
+    pbulk_adata.layers['expr'] = pbulk_adata.X.copy()
+    pbulk_adata.layers['expr'][pbulk_adata.layers['expr'].nonzero()] = 1
+
+    pbulk_adata.var['mean_counts'] = np.array(pbulk_adata.X.mean(0)).flatten()
+    pbulk_adata.var['mean_logcounts'] = np.array(pbulk_adata.layers['logcounts'].mean(0)).flatten()
+    pbulk_adata.var['n_expressing'] = np.array(pbulk_adata.layers['expr'].sum(0)).flatten()
+
+    pbulk_adata.var = pd.concat([pbulk_adata.var, n_signif_cts.set_index('gene_id')], axis=1)
+
+    plt.hist2d(pbulk_adata.var['n_expressing'], pbulk_adata.var['mean_logcounts'], bins=100, norm=matplotlib.colors.LogNorm());
+    plt.xlabel('# pseudo-bulks expressing');
+    plt.ylabel('Mean log-normalized counts');
+    plt.axhline(pbulk_adata.var['mean_logcounts'].quantile(0.90), color='red')
+    
+    if savedir is not None:
+        plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.var_stats.pdf', bbox_inches='tight')
+        plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.var_stats.png', bbox_inches='tight')
+    
+    plt.show()
         
 cxg_metadata = pd.read_csv(data_dir + 'cellxgene_hsapiens_donor_metadata.disease_relevant_annotation.csv', index_col=0)
 
@@ -148,5 +208,11 @@ pbulk_adata.obs['sample_id'] = ['-'.join(x[1:]) for x in pbulk_adata.obs_names.s
 disease_relevant_tissue = cxg_metadata[cxg_metadata['disease_ontology_id'] == disease_ontology_id].disease_relevant_tissue.unique()[0]
 disease_name = cxg_metadata[cxg_metadata['disease_ontology_id'] == disease_ontology_id].disease.unique()[0]
 
+plot_dir = plot_dir + f'/{disease_ontology_id.replace(":", "_")}_{preprocessing_utils.clean_disease_name(disease_name)}'
+if not os.path.exists(plot_dir):
+    os.mkdir(plot_dir)
+
 plot_ncells(pbulk_adata, savedir = plot_dir)
 plot_targets_dotplot(pbulk_adata, targets, disease_ontology_id, disease_name, savedir = plot_dir)
+plot_celltype_distribution(pbulk_adata, savedir = plot_dir)
+plot_var_stats(pbulk_adata, savedir = plot_dir)

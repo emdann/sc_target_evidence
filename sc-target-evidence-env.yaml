@@ -13,3 +13,4 @@ dependencies:
       - tiledbsoma
       - obonet
       - scipy
+      - genomic-features

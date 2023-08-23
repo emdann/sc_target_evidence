@@ -73,6 +73,12 @@ def get_disease_targets_sc_data(
     dataset_ids = sc_metadata['dataset_id'].unique()
     tissue_ids = sc_metadata['tissue_general_original'].unique()
     disease_ids = sc_metadata['disease_ontology_id_original'].unique()
+#     assay_blacklist = [
+#         'BD Rhapsody Targeted mRNA',
+#         'STRT-seq',
+#         'inDrop'
+#         ]
+#     assay_ids_str = '[' + ', '.join(f"'{item}'" for item in assay_blacklist) + ']'
     tissue_ids_str = '[' + ', '.join(f"'{item}'" for item in tissue_ids) + ']'
     disease_ids_str = '[' + ', '.join(f"'{item}'" for item in disease_ids) + ']'
     dataset_ids_str = '[' + ', '.join(f"'{item}'" for item in dataset_ids) + ']'

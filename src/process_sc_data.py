@@ -1,5 +1,6 @@
 ## Get sc data for disease-relevant targets and pseudo-bulk
 import pandas as pd
+import json
 from sc_target_evidence_utils import cxg_utils, plotting_utils, preprocessing_utils, cellontology_utils
 
 import argparse
@@ -9,7 +10,7 @@ parser.add_argument("mondo_id",
                     help="Mondo ID of disease of interest (format should be MONDO:00000000)")
 parser.add_argument("--keep_all_genes",
                     type=bool,
-                    help="Whether to keep all the genes")
+                    help="Whether to keep all the genes (within possible universes)")
 parser.add_argument("--output_dir",
                     default='/nfs/team205/ed6/bin/sc_target_evidence/data/',
                     type=str,
@@ -50,15 +51,31 @@ if "_" in disease_ontology_id:
     disease_ontology_id = disease_ontology_id.replace("_", ":")
 target_genes = targets[targets['cxg_matched_id'] == disease_ontology_id.replace(":", "_")].targetId.tolist()
 
+## Get list of all possible genes you might need 
+json_file =   output_dir + 'target_universe_dict.json'
+with open(json_file, "r") as json_file:
+    universe_dict = json.load(json_file)
+    
+all_genes_ls = sum([x for x in universe_dict.values()], [])
+all_genes_ls.extend(target_genes)
+all_genes_ls = list(set(all_genes_ls))
+
+if keep_all_genes:
+    keep_genes = all_genes_ls
+else:
+    keep_genes = target_genes
+
+print(f'# genes: {len(keep_genes)}')
+
 ## Get target expression in disease-relevant tissue
 print("Loading data from cellxgene...")
 adata = cxg_utils.get_disease_targets_sc_data(
-    target_genes=target_genes, 
+    target_genes=keep_genes, 
     disease_ontology_id=disease_ontology_id,
     cxg_metadata=cxg_metadata,
     keep_disease_relevant_tissue=True,
     keep_normal=True,
-    keep_all_genes = keep_all_genes
+    keep_all_genes = False
     )
 adata.var_names = adata.var['feature_id'].values
 adata.obs['disease_ontology_id'] = disease_ontology_id
@@ -99,11 +116,6 @@ pbulk_adata = pbulk_adata[pbulk_adata.obs['high_level_cell_type_ontology_term_id
 pbulk_adata.obs['high_level_cell_type'] = [f'{cellontology_utils.ontology2name(x, graph)} ({x})' for x in pbulk_adata.obs['high_level_cell_type_ontology_term_id'].tolist()]
 pbulk_adata.obs['sample_id'] = ['-'.join(x[1:]) for x in pbulk_adata.obs_names.str.split("-")]
 pbulk_adata.obs['disease_ontology_id'] = disease_ontology_id
-
-# ## Exclude cell types with data from less than 3 replicates
-# n_replicates = pbulk_adata.obs.value_counts(['high_level_cell_type_ontology_term_id', 'disease']).reset_index()
-# ct_labels = n_replicates[n_replicates[0] >= 3]['high_level_cell_type_ontology_term_id'].unique()
-# pbulk_adata = pbulk_adata[pbulk_adata.obs['high_level_cell_type_ontology_term_id'].isin(ct_labels)].copy()
 
 ## Save 
 print("Saving...")

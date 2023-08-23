@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import scanpy as sc
 import scipy
 import anndata
+import matplotlib
 
 import obonet
 from sc_target_evidence_utils import preprocessing_utils
@@ -175,8 +176,6 @@ def plot_var_stats(pbulk_adata, savedir=None):
     pbulk_adata.var['mean_logcounts'] = np.array(pbulk_adata.layers['logcounts'].mean(0)).flatten()
     pbulk_adata.var['n_expressing'] = np.array(pbulk_adata.layers['expr'].sum(0)).flatten()
 
-    pbulk_adata.var = pd.concat([pbulk_adata.var, n_signif_cts.set_index('gene_id')], axis=1)
-
     plt.hist2d(pbulk_adata.var['n_expressing'], pbulk_adata.var['mean_logcounts'], bins=100, norm=matplotlib.colors.LogNorm());
     plt.xlabel('# pseudo-bulks expressing');
     plt.ylabel('Mean log-normalized counts');
@@ -212,7 +211,7 @@ plot_dir = plot_dir + f'/{disease_ontology_id.replace(":", "_")}_{preprocessing_
 if not os.path.exists(plot_dir):
     os.mkdir(plot_dir)
 
+plot_var_stats(pbulk_adata, savedir = plot_dir)
 plot_ncells(pbulk_adata, savedir = plot_dir)
 plot_targets_dotplot(pbulk_adata, targets, disease_ontology_id, disease_name, savedir = plot_dir)
-plot_celltype_distribution(pbulk_adata, savedir = plot_dir)
-plot_var_stats(pbulk_adata, savedir = plot_dir)
+# plot_celltype_distribution(pbulk_adata, savedir = plot_dir)

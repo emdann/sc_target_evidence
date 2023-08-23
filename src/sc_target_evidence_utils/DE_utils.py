@@ -4,6 +4,7 @@ import os
 import anndata
 import pandas as pd
 import numpy as np
+import scanpy as sc
 from datetime import datetime
 from sc_target_evidence_utils import preprocessing_utils
 
@@ -15,7 +16,8 @@ from rpy2.robjects.packages import STAP
 def _run_glmGamPoi_DE(pbulk_adata, 
                      design = '~ disease',
                     ref_level = None,
-                    contrast = 'disease'
+                    contrast = 'disease',
+                    n_hvgs = None
                     ) -> pd.DataFrame:
     '''
     Run R code for DE analysis with glmGamPoi
@@ -37,11 +39,17 @@ def _run_glmGamPoi_DE(pbulk_adata,
         ref_level = 'NULL'
     else:
         ref_level = f'"{ref_level}"'
+        
+    if n_hvgs is None:
+        n_hvgs = 'NULL'
+    else:
+        n_hvgs = f'{n_hvgs}'
 
     glmgampoi_str = f'''
         library(SingleCellExperiment)
         library(glmGamPoi)
         library(scran)
+        library(scuttle)
 
         run_de <- function(args){{
             pbulk_sdata_X <- args[[1]]
@@ -49,16 +57,32 @@ def _run_glmGamPoi_DE(pbulk_adata,
             pbulk_sdata_var <- args[[3]]
 
             sce <- SingleCellExperiment(assays = list(counts = t(pbulk_sdata_X)), colData = pbulk_sdata_obs)
+            
+            if (!is.null({n_hvgs})){{
+                sce <- logNormCounts(sce)
+
+                ## Feature selection w scran (just on test cell types)
+                dec <- modelGeneVar(sce)
+                hvgs <- getTopHVGs(dec, n = {n_hvgs})
+                sce <- sce[hvgs,]
+            }}
 
             ## Fit
             fit <- glm_gp(sce, design = {design}, reference_level = {ref_level}, size_factors = colData(sce)[['size_factors']])
 
             ## Test 
-            de_res <- test_de(fit, contrast = '{contrast}')    
-            de_res[,'gene_name'] <- pbulk_sdata_var['feature_name']
-            de_res[,'gene_id'] <- pbulk_sdata_var['feature_id']
+            de_res <- test_de(fit, contrast = '{contrast}')
+            if (!is.null({n_hvgs})){{
+                de_res[,'gene_name'] <- pbulk_sdata_var[hvgs,]['feature_name']
+                de_res[,'gene_id'] <- pbulk_sdata_var[hvgs,]['feature_id']
+            }} else {{
+                de_res[,'gene_name'] <- pbulk_sdata_var['feature_name']
+                de_res[,'gene_id'] <- pbulk_sdata_var['feature_id']
+            }}
             return(de_res)
         }}'''
+    
+    sc.pp.filter_genes(pbulk_adata, min_cells = 3) # exclude genes expressed in < 3 pseudobulk samples
     
     ## Get anndata components
     pbulk_sdata_X = pbulk_adata.X.toarray().copy()
@@ -97,7 +121,8 @@ def _run_glmGamPoi_DE(pbulk_adata,
 def celltype_marker_targets(pbulk_adata: anndata.AnnData, 
                             min_replicates: int = 3,
                             confounders: List[str] = ['suspension_type', 'assay'],
-                            remove_intercept = False
+                            remove_intercept = False,
+                            n_hvgs = None
                             ) -> pd.DataFrame:
     '''
     Run DE analysis to identify cell type marker genes.
@@ -108,6 +133,7 @@ def celltype_marker_targets(pbulk_adata: anndata.AnnData,
     - min_replicates: minimum number of replicates per cell type (default: 3)
     - confounders: list of confounding variables to include in design matrix (default: ['suspension_type', 'assay'])
     - remove_intercept: indicates whether intercept should be removed (i.e. assuming the reference level in = 0)
+    - n_hvgs: number of HVGs to select for DE testing (default: None, no HVG selection)
 
     Returns:
     -------
@@ -151,8 +177,10 @@ def celltype_marker_targets(pbulk_adata: anndata.AnnData,
             pbulk_adata_test,
                 design = DE_design,
                 ref_level = None,
-                contrast = f'high_level_cell_type_ontology_term_id{ct_term}'
+                contrast = f'high_level_cell_type_ontology_term_id{ct_term}',
+                n_hvgs = n_hvgs
                 )
+
         de_results['high_level_cell_type_ontology_term_id'] = ct_term
         celltype_de_results = pd.concat([celltype_de_results, de_results], axis=0)
 
@@ -161,7 +189,8 @@ def celltype_marker_targets(pbulk_adata: anndata.AnnData,
 
 def disease_marker_targets(pbulk_adata: anndata.AnnData, 
                             min_replicates: int = 3,
-                            confounders: List[str] = ['suspension_type', 'assay']
+                            confounders: List[str] = ['suspension_type', 'assay'],
+                            n_hvgs = None
                             ) -> pd.DataFrame:
     '''
     Run DE analysis to identify disease cell type marker genes.
@@ -171,6 +200,7 @@ def disease_marker_targets(pbulk_adata: anndata.AnnData,
     - pbulk_adata: anndata object with pseudobulked data
     - min_replicates: minimum number of replicates per cell type (default: 3)
     - confounders: list of confounding variables to include in design matrix (default: ['suspension_type', 'assay'])
+    - n_hvgs: number of HVGs to select for DE testing (default: None, no HVG selection)
 
     Returns:
     -------
@@ -217,9 +247,12 @@ def disease_marker_targets(pbulk_adata: anndata.AnnData,
                 ad_test,
                 design = DE_design,
                 ref_level = 'normal',
-                contrast = f'disease{disease_term}'
+                contrast = f'disease{disease_term}',
+                n_hvgs = n_hvgs
                 )
             de_results['high_level_cell_type_ontology_term_id'] = ct_term
+#             if n_hvgs is not None:
+#                 assert de_results.shape[0] == n_hvgs
             de_results['confounder_warning'] = confounding_warning
             disease_de_results = pd.concat([disease_de_results, de_results], axis=0)
             
@@ -236,7 +269,8 @@ def disease_marker_targets(pbulk_adata: anndata.AnnData,
                 bulk_adata_test,
                 design = '~ disease',
                 ref_level = 'normal',
-                contrast = f'disease{disease_term}'
+                contrast = f'disease{disease_term}',
+                n_hvgs = n_hvgs
                 )
     return disease_de_results, bulk_de_results
 

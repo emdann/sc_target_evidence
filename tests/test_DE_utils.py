@@ -21,3 +21,8 @@ def test_disease_marker_targets(pbulk_adata):
     assert disease_de_genes['gene_id'].nunique() == pbulk_adata.n_vars, 'Incorrect number of genes in DE results'
     assert bulk_de_genes['gene_id'].shape[0] == pbulk_adata.n_vars, 'Incorrect number of genes in DE results'
 
+def test_hvg_selection(pbulk_adata):
+    ct_de_genes = celltype_marker_targets(pbulk_adata, n_hvgs = 5)
+    assert ct_de_genes['gene_id'].nunique() == 5, 'Incorrect number of genes in DE results (celltype)'
+    disease_de_genes, bulk_de_genes = disease_marker_targets(pbulk_adata, n_hvgs = 5)
+    assert bulk_de_genes['gene_id'].shape[0] == 5, 'Incorrect number of genes in DE results (bulk disease)'

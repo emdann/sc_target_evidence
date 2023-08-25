@@ -1,6 +1,25 @@
-data/
+# --- Project ignore list ---
+
+genetic_support/
+
+# OpenTargets full table
+TargetDiseasePairs_*.csv
+
+# Ontology files
+*.obo
+
+# Anndata objects
+*.h5ad
+
+# DE analysis outputs
+DE_*.csv
+disease_target_evidence.MONDO*.csv
+
+# Cluster logfiles
 *.err
 *.out
+
+# --- standard python ignore list ---
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

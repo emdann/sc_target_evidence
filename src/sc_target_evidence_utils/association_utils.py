@@ -64,7 +64,8 @@ def compute_grouped_OR(
     targets_evidence_all, 
     group_by,
     evidence_cols = ['disease_ct_evidence', 'ct_marker_evidence', 'disease_evidence','bulk_disease_evidence', 'has_genetic_support'],
-    clinical_status_cols = ['is_druggable', 'is_safe', 'is_effective', 'is_approved']
+    clinical_status_cols = ['is_druggable', 'is_safe', 'is_effective', 'is_approved'],
+    gene_universe = None
     ):
     '''
     Compute OddsRatios stratifying target-disease pairs by a given column.
@@ -90,7 +91,10 @@ def compute_grouped_OR(
         targets_evidence_df = targets_evidence_all[targets_evidence_all[group_by] == g].copy()
         for ev in evidence_cols:
             for status in clinical_status_cols:
-                or_df = get_OR(targets_evidence_df, ev, status)
-                or_df[group_by] = g
-                or_df_all = pd.concat([or_df_all, or_df], axis=0)
+                if targets_evidence_df[status].sum() > 0:
+                    or_df = get_OR(targets_evidence_df, ev, status, gene_universe)
+                    or_df[group_by] = g
+                    or_df_all = pd.concat([or_df_all, or_df], axis=0)
+                else:
+                    continue
     return(or_df_all)

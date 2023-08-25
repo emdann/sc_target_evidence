@@ -1,5 +1,6 @@
 ## Get sc data for disease-relevant targets and pseudo-bulk
 import pandas as pd
+import anndata
 import json
 from sc_target_evidence_utils import cxg_utils, plotting_utils, preprocessing_utils, cellontology_utils
 
@@ -34,6 +35,37 @@ def clean_disease(pbulk_adata):
     pbulk_adata.obs['disease_name_original'] = pbulk_adata.obs['disease'].copy()
     pbulk_adata.obs['disease'] = [disease_rename_rev[x] if x in disease_rename_rev.keys() else x for x in pbulk_adata.obs.disease]
 
+def _download_dataset(dataset_id, tissue_ids, disease_ids, ct_rename_dict):
+    '''Download and preprocess one dataset'''
+    adata = cxg_utils.get_disease_targets_dataset(
+        dataset_ids = [dataset_id], tissue_ids = tissue_ids, disease_ids= disease_ids,
+        target_genes=keep_genes, 
+        keep_all_genes = False
+        )
+    adata.var_names = adata.var['feature_id'].values
+    adata.obs['disease_ontology_id'] = disease_ontology_id
+
+    # Exclude blacklisted assays
+    assay_blacklist = [
+        'BD Rhapsody Targeted mRNA',
+        'STRT-seq',
+        'inDrop'
+        ]
+
+    adata = adata[~adata.obs['assay'].isin(assay_blacklist)].copy()
+    adata = adata[adata.obs['is_primary_data']].copy()
+
+    adata.obs["high_level_cell_type_ontology_term_id"] = [
+        ct_rename_dict[x] if x in ct_rename_dict.keys() else 'low_quality_annotation' for x in adata.obs["cell_type_ontology_term_id"] 
+        ]
+
+    ## Pseudo-bulk by cell ontology and sample
+    print("Pseudo-bulking...")
+    pbulk_adata = preprocessing_utils.anndata2pseudobulk(adata, 
+                                     group_by=['high_level_cell_type_ontology_term_id', 'assay', 'suspension_type', 'disease', 'donor_id'],
+                                     min_ncells=5       
+                                    )
+    return(pbulk_adata)
 
 # Parse args
 disease_ontology_id = args.mondo_id
@@ -67,49 +99,39 @@ else:
 
 print(f'# genes: {len(keep_genes)}')
 
-## Get target expression in disease-relevant tissue
-print("Loading data from cellxgene...")
-adata = cxg_utils.get_disease_targets_sc_data(
-    target_genes=keep_genes, 
-    disease_ontology_id=disease_ontology_id,
-    cxg_metadata=cxg_metadata,
-    keep_disease_relevant_tissue=True,
-    keep_normal=True,
-    keep_all_genes = False
-    )
-adata.var_names = adata.var['feature_id'].values
-adata.obs['disease_ontology_id'] = disease_ontology_id
+## Get datasets of interest
+sc_metadata = cxg_utils._get_cxg_datasets(cxg_metadata, disease_ontology_id, keep_disease_relevant_tissue=True, keep_normal=True)
+dataset_ids = sc_metadata['dataset_id'].unique()
+tissue_ids = sc_metadata['tissue_general_original'].unique()
+disease_names = sc_metadata['disease'].unique()
+disease_ids = sc_metadata['disease_ontology_id_original'].unique()
 
-# Exclude blacklisted assays
-assay_blacklist = [
-    'BD Rhapsody Targeted mRNA',
-    'STRT-seq',
-    'inDrop'
-    ]
+## Get annotations from cell metadata
+cxg_cell_metadata = pd.read_csv('/nfs/team205/ed6/data/cellxgene_hsapiens_cell_metadata.csv')
+cxg_cell_metadata = cxg_cell_metadata[(cxg_cell_metadata.tissue_general.isin(tissue_ids)) & (cxg_cell_metadata.disease.isin(disease_names)) & (cxg_cell_metadata.dataset_id.isin(dataset_ids))].copy()
+cxg_cell_metadata['disease_ontology_id'] = disease_ontology_id
 
-adata = adata[~adata.obs['assay'].isin(assay_blacklist)].copy()
-
-## Clean cell ontologies
+# Clean cell ontologies
 print("Cleaning cell ontologies...")
 graph = cellontology_utils.get_cellontology_graph(output_dir)
 
 # Exclude cell types with less than 5 cells
-ct_counts = adata.obs["cell_type_ontology_term_id"].value_counts()
+ct_counts = cxg_cell_metadata["cell_type_ontology_term_id"].value_counts()
 ontology_terms = ct_counts[ct_counts > 5].index.tolist()
 ct_rename_dict = cellontology_utils.rename_cts_to_high_level(ontology_terms, graph)
-adata.obs["high_level_cell_type_ontology_term_id"] = [
-    ct_rename_dict[x] if x in ct_rename_dict.keys() else 'low_quality_annotation' for x in adata.obs["cell_type_ontology_term_id"] 
+cxg_cell_metadata["high_level_cell_type_ontology_term_id"] = [
+    ct_rename_dict[x] if x in ct_rename_dict.keys() else 'low_quality_annotation' for x in cxg_cell_metadata["cell_type_ontology_term_id"] 
     ]
+plotting_utils.plot_celltype_rename(cxg_cell_metadata, disease_ontology_id, graph, savedir=output_dir + '/plots/')
 
-plotting_utils.plot_celltype_rename(adata.obs, disease_ontology_id, graph, savedir=output_dir + '/plots/')
-
-
-## Pseudo-bulk by cell ontology and sample
-print("Pseudo-bulking...")
-pbulk_adata = preprocessing_utils.anndata2pseudobulk(adata, 
-                                 group_by=['high_level_cell_type_ontology_term_id', 'assay', 'suspension_type', 'disease', 'donor_id'],
-                                 min_ncells=5       
-                                )
+## Get target expression in disease-relevant tissue
+pbulk_ls = []
+for dataset in dataset_ids:
+    print(f"Processing dataset {dataset}...")
+    pbulk_dataset = _download_dataset(dataset, tissue_ids, disease_ids, ct_rename_dict)
+    pbulk_ls.append(pbulk_dataset)
+    
+pbulk_adata = anndata.concat(pbulk_ls)
 
 clean_disease(pbulk_adata)
 pbulk_adata = pbulk_adata[pbulk_adata.obs['high_level_cell_type_ontology_term_id'] != 'low_quality_annotation'].copy()

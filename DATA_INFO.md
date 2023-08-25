@@ -24,6 +24,6 @@ Data folders: `/nfs/team205/ed6/bin/sc_target_evidence/data/plots/{disease_id}_{
 
 - `DE_celltype_{disease_id}.hvgs.csv` - results of differential expression analysis between cell types, ran on top 7500 highly variable genes (output of `sc_target_evidence_utils.DE_utils.celltype_marker_targets`). Results for all tested cell types are shown. 
 - `DE_diseasecelltype_{disease_id}.hvgs.csv` - results of differential expression analysis between disease and healthy cells in each cell types, ran on top 7500 highly variable genes (output of `sc_target_evidence_utils.DE_utils.disease_marker_targets`). Results for all tested cell types are shown. 
-- `DE_diseasecelltype_{disease_id}.hvgs.csv` - results of differential expression analysis between disease and healthy cells in bulked samples (ignoring cell type), ran on top 7500 highly variable genes (output of `sc_target_evidence_utils.DE_utils.disease_marker_targets`).
+- `DE_diseasebulk_{disease_id}.hvgs.csv` - results of differential expression analysis between disease and healthy cells in bulked samples (ignoring cell type), ran on top 7500 highly variable genes (output of `sc_target_evidence_utils.DE_utils.disease_marker_targets`).
 
 

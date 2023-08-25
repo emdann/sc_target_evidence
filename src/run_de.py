@@ -10,7 +10,7 @@ parser.add_argument("--data_dir",
                     type=str,
                     help="Directory storing pseudo-bulked expression objects.")
 parser.add_argument("--n_hvgs",
-                    default=7500,
+                    default=5000,
                     type=int,
                     help="Number of highly variable genes to use in DE analysis.")
 args = parser.parse_args()

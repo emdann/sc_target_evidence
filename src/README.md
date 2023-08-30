@@ -16,7 +16,8 @@ python plot_diagnostics.py ${disease_id} --plot_dir ${plotdir}
 
 ## ---- Run differential expression analysis ---- ##
 # saves {outdir}/DE_celltype_{disease_id}.hvgs.csv
+python run_de_ct.py ${disease_id} --plot_dir ${plotdir}
 # saves {outdir}/DE_diseasecelltype_{disease_id}.hvgs.csv
 # saves {outdir}/DE_diseasebulk_{disease_id}.hvgs.csv
-python run_de.py ${disease_id} --plot_dir ${plotdir}
+python run_de_disease.py ${disease_id} --plot_dir ${plotdir}
 ```

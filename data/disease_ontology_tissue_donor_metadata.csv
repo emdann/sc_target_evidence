@@ -1,0 +1,160 @@
+,tissue_general,n_donors,disease_name,disease_ontology_id
+84,blood,1783,normal,PATO:0000461
+3,blood,509,COVID-19,MONDO:0100096
+44,brain,229,glioblastoma,MONDO:0018177
+105,lung,217,normal,PATO:0000461
+148,blood,162,systemic lupus erythematosus,MONDO:0007915
+54,lung,162,lung adenocarcinoma,MONDO:0005061
+87,breast,151,normal,PATO:0000461
+117,respiratory system,98,normal,PATO:0000461
+101,kidney,96,normal,PATO:0000461
+88,colon,92,normal,PATO:0000461
+121,small intestine,88,normal,PATO:0000461
+86,brain,88,normal,PATO:0000461
+104,liver,73,normal,PATO:0000461
+4,lung,68,COVID-19,MONDO:0100096
+109,nose,64,normal,PATO:0000461
+98,heart,56,normal,PATO:0000461
+116,reproductive system,55,normal,PATO:0000461
+40,heart,52,dilated cardiomyopathy,MONDO:0005021
+145,lung,47,squamous cell lung carcinoma,MONDO:0005097
+124,stomach,45,normal,PATO:0000461
+95,eye,44,normal,PATO:0000461
+91,endocrine gland,42,normal,PATO:0000461
+39,brain,42,dementia,MONDO:0001627
+24,breast,40,breast cancer,MONDO:0007254
+9,small intestine,39,Crohn disease,MONDO:0005011
+123,spleen,39,normal,PATO:0000461
+85,bone marrow,38,normal,PATO:0000461
+70,omentum,35,malignant ovarian serous tumor,MONDO:0024885
+112,pancreas,33,normal,PATO:0000461
+106,lymph node,33,normal,PATO:0000461
+0,brain,32,Alzheimer disease,MONDO:0004975
+5,nose,28,COVID-19,MONDO:0100096
+27,kidney,28,chronic kidney disease,MONDO:0005300
+113,placenta,28,normal,PATO:0000461
+42,stomach,26,gastric cancer,MONDO:0001056
+55,lymph node,26,lung adenocarcinoma,MONDO:0005061
+62,ascitic fluid,25,malignant ovarian serous tumor,MONDO:0024885
+1,blood,24,B-cell non-Hodgkin lymphoma,MONDO:0015759
+120,skin of body,24,normal,PATO:0000461
+93,esophagus,24,normal,PATO:0000461
+13,kidney,22,acute kidney failure,MONDO:0002492
+81,adipose tissue,22,normal,PATO:0000461
+108,musculature,22,normal,PATO:0000461
+38,lung,22,cystic fibrosis,MONDO:0009061
+138,blood,20,respiratory system disorder,MONDO:0005087
+151,colon,20,tubular adenoma,MONDO:0024660
+41,lymph node,20,follicular lymphoma,MONDO:0018906
+100,intestine,20,normal,PATO:0000461
+135,blood,20,post-COVID-19 disorder,MONDO:0100320
+77,heart,19,myocardial infarction,MONDO:0005068
+28,lung,18,chronic obstructive pulmonary disease,MONDO:0005002
+8,colon,18,Crohn disease,MONDO:0005011
+76,uterus,18,malignant ovarian serous tumor,MONDO:0024885
+129,uterus,17,normal,PATO:0000461
+49,blood,17,influenza,MONDO:0005812
+71,ovary,15,malignant ovarian serous tumor,MONDO:0024885
+29,nose,15,chronic rhinitis,MONDO:0004514
+80,lung,15,non-small cell lung carcinoma,MONDO:0005233
+103,large intestine,15,normal,PATO:0000461
+74,peritoneum,14,malignant ovarian serous tumor,MONDO:0024885
+52,brain,14,lung adenocarcinoma,MONDO:0005061
+134,lung,13,pneumonia,MONDO:0005249
+82,adrenal gland,13,normal,PATO:0000461
+111,ovary,13,normal,PATO:0000461
+96,fallopian tube,12,normal,PATO:0000461
+65,intestine,11,malignant ovarian serous tumor,MONDO:0024885
+10,small intestine,11,Crohn ileitis,MONDO:0000709
+7,saliva,11,COVID-19,MONDO:0100096
+37,blood,11,common variable immunodeficiency,MONDO:0015517
+33,colon,11,colorectal cancer,MONDO:0005575
+115,prostate gland,10,normal,PATO:0000461
+14,bone marrow,9,acute myeloid leukemia,MONDO:0018874
+142,lung,9,small cell lung carcinoma,MONDO:0008433
+56,pleural fluid,9,lung adenocarcinoma,MONDO:0005061
+147,stomach,9,stomach disorder,MONDO:0004298
+46,colon,8,hyperplastic polyp,MONDO:0006249
+20,heart,8,arrhythmogenic right ventricular cardiomyopathy,MONDO:0016587
+92,esophagogastric junction,8,normal,PATO:0000461
+2,esophagus,7,Barrett esophagus,MONDO:0013662
+30,kidney,7,clear cell renal carcinoma,MONDO:0005005
+22,prostate gland,7,benign prostatic hyperplasia,MONDO:0010811
+110,omentum,7,normal,PATO:0000461
+99,immune system,7,normal,PATO:0000461
+15,bone marrow,6,acute promyelocytic leukemia,MONDO:0012883
+132,brain,6,pilocytic astrocytoma,MONDO:0016691
+137,lung,6,pulmonary fibrosis,MONDO:0002771
+83,bladder organ,6,normal,PATO:0000461
+50,lung,6,interstitial lung disease,MONDO:0015925
+6,respiratory system,6,COVID-19,MONDO:0100096
+143,lymph node,6,small cell lung carcinoma,MONDO:0008433
+31,colon,6,colon sessile serrated adenoma/polyp,MONDO:0006156
+156,pancreas,5,type 1 diabetes mellitus,MONDO:0005147
+43,stomach,5,gastritis,MONDO:0004966
+130,vasculature,5,normal,PATO:0000461
+11,bone marrow,5,Down syndrome,MONDO:0008608
+157,kidney,5,type 2 diabetes mellitus,MONDO:0005148
+60,abdomen,5,malignant ovarian serous tumor,MONDO:0024885
+102,lamina propria,5,normal,PATO:0000461
+53,liver,4,lung adenocarcinoma,MONDO:0005061
+51,adrenal gland,3,lung adenocarcinoma,MONDO:0005061
+119,skeletal system,3,normal,PATO:0000461
+126,tongue,3,normal,PATO:0000461
+127,trunk,3,normal,PATO:0000461
+69,musculature,3,malignant ovarian serous tumor,MONDO:0024885
+64,fallopian tube,3,malignant ovarian serous tumor,MONDO:0024885
+136,lung,3,pulmonary emphysema,MONDO:0004849
+118,scalp,3,normal,PATO:0000461
+141,liver,3,small cell lung carcinoma,MONDO:0008433
+107,mucosa,3,normal,PATO:0000461
+149,brain,3,temporal lobe epilepsy,MONDO:0005115
+23,liver,3,blastoma,MONDO:0005565
+154,colon,3,tubulovillous adenoma,MONDO:0024661
+94,exocrine gland,3,normal,PATO:0000461
+89,digestive system,3,normal,PATO:0000461
+32,intestine,2,colon sessile serrated adenoma/polyp,MONDO:0006156
+90,embryo,2,normal,PATO:0000461
+16,colon,2,adenocarcinoma,MONDO:0004970
+17,large intestine,2,adenocarcinoma,MONDO:0004970
+45,fallopian tube,2,hydrosalpinx,MONDO:0600025
+66,large intestine,2,malignant ovarian serous tumor,MONDO:0024885
+59,lung,2,lymphangioleiomyomatosis,MONDO:0011705
+25,eye,2,cataract,MONDO:0005129
+158,vasculature,2,type 2 diabetes mellitus,MONDO:0005148
+68,lymph node,2,malignant ovarian serous tumor,MONDO:0024885
+125,testis,2,normal,PATO:0000461
+122,spinal cord,2,normal,PATO:0000461
+153,large intestine,2,tubular adenoma,MONDO:0024660
+152,intestine,2,tubular adenoma,MONDO:0024660
+131,yolk sac,2,normal,PATO:0000461
+144,pleural fluid,2,small cell lung carcinoma,MONDO:0008433
+63,colon,2,malignant ovarian serous tumor,MONDO:0024885
+133,lung,1,pleomorphic carcinoma,MONDO:0003573
+48,large intestine,1,hyperplastic polyp,MONDO:0006249
+57,skeletal system,1,lung adenocarcinoma,MONDO:0005061
+58,lung,1,lung large cell carcinoma,MONDO:0003050
+61,abdominal wall,1,malignant ovarian serous tumor,MONDO:0024885
+73,parietal peritoneum,1,malignant ovarian serous tumor,MONDO:0024885
+67,liver,1,malignant ovarian serous tumor,MONDO:0024885
+128,ureter,1,normal,PATO:0000461
+72,paracolic gutter,1,malignant ovarian serous tumor,MONDO:0024885
+97,gallbladder,1,normal,PATO:0000461
+75,urinary bladder,1,malignant ovarian serous tumor,MONDO:0024885
+78,small intestine,1,neuroendocrine carcinoma,MONDO:0002120
+139,adrenal gland,1,small cell lung carcinoma,MONDO:0008433
+35,colon,1,colorectal neoplasm,MONDO:0005335
+47,intestine,1,hyperplastic polyp,MONDO:0006249
+140,axilla,1,small cell lung carcinoma,MONDO:0008433
+114,pleura,1,normal,PATO:0000461
+34,intestine,1,colorectal cancer,MONDO:0005575
+146,lymph node,1,squamous cell lung carcinoma,MONDO:0005097
+26,kidney,1,chromophobe renal cell carcinoma,MONDO:0017885
+12,kidney,1,Wilms tumor,MONDO:0006058
+150,brain,1,trisomy 18,MONDO:0018071
+21,eye,1,basal laminar drusen,MONDO:0007472
+36,intestine,1,colorectal neoplasm,MONDO:0005335
+155,intestine,1,tubulovillous adenoma,MONDO:0024661
+19,eye,1,age related macular degeneration 7,MONDO:0012419
+18,small intestine,1,adenocarcinoma,MONDO:0004970
+79,heart,1,non-compaction cardiomyopathy,MONDO:0005418

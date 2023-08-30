@@ -17,6 +17,8 @@ obo_file = "../data/cl.obo"  # downloaded from http://obofoundry.org/ontology/cl
 # Load the ontology from the OBO file
 graph = obonet.read_obo(obo_file)
 
+plt.rcParams['axes.grid'] = False
+
 def ontology2name(o):
     return(graph.nodes.get(o)['name'])
 
@@ -50,24 +52,26 @@ def plot_ncells(pbulk_adata, savedir=None):
     pl_df['high_level_cell_type'] 
 
     fig_height = len(sorted_cts)
-
-    with plt.rc_context({'figure.figsize':[7, fig_height]}):
-        sns.set_context('poster')
-        sns.boxplot(data=pl_df, y='high_level_cell_type', x='log10_n_cells', 
-                    hue='disease', dodge=True, palette='Set1', showfliers=False)
-        sns.stripplot(data=pl_df, y='high_level_cell_type', x='log10_n_cells', 
-                      hue='disease', dodge=True, color='black', s=3);
-        plt.legend(
-          bbox_to_anchor=(1.05, 1), # relative position on x and y axis (> 1 indicates outside of axis)
-          loc='upper left', # equiv to hjust/vjust in ggplot
-          borderaxespad=0, # The pad between the axes and legend border, in font-size units.
-          frameon=False,
-          title='Disease')
-        plt.xlabel("log10(# cells)");
-        plt.ylabel("High level cell type");
-        plt.title(f'{disease_name} ({disease_ontology_id}) - {disease_relevant_tissue}');
-        if savedir is not None:
-            plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.n_cells_boxplot.pdf', bbox_inches='tight')
+    
+    sns.set_context('poster')
+    fig = plt.figure(figsize=[7, fig_height])
+        
+    sns.boxplot(data=pl_df, y='high_level_cell_type', x='log10_n_cells', 
+                hue='disease', dodge=True, palette='Set1', showfliers=False)
+    sns.stripplot(data=pl_df, y='high_level_cell_type', x='log10_n_cells', 
+                  hue='disease', dodge=True, color='black', s=3);
+    plt.legend(
+      bbox_to_anchor=(1.05, 1), # relative position on x and y axis (> 1 indicates outside of axis)
+      loc='upper left', # equiv to hjust/vjust in ggplot
+      borderaxespad=0, # The pad between the axes and legend border, in font-size units.
+      frameon=False,
+      title='Disease')
+    plt.xlabel("log10(# cells)");
+    plt.ylabel("High level cell type");
+    plt.title(f'{disease_name} ({disease_ontology_id}) - {disease_relevant_tissue}');
+    if savedir is not None:
+        fig.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.n_cells_boxplot.pdf', bbox_inches='tight')
+        fig.show()
 
 def plot_targets_dotplot(
     pbulk_adata: anndata.AnnData,
@@ -125,8 +129,10 @@ def plot_targets_dotplot(
     if savedir is not None:
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.target_expression.pdf', bbox_inches='tight')
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.target_expression.png', bbox_inches='tight')
-    
-    plt.show()
+        plt.show()
+    else:
+        plt.show()
+    return()
     
     
 def plot_celltype_distribution(pbulk_adata, savedir=None):  
@@ -140,19 +146,22 @@ def plot_celltype_distribution(pbulk_adata, savedir=None):
     disease_palette = sns.color_palette("Set1", n_colors=len(df['disease'].cat.categories))
     disease_color_mapping = dict(zip(df['disease'].cat.categories, disease_palette))
 
-    fig_height, fig_width = (x /10 for x in conf_mat.shape)
+    fig_height, fig_width = (x / 5 for x in conf_mat.shape)
 
-
-    plt.figure(figsize=(fig_height, fig_width))
+    sns.set_context('paper')
 
     # Clustermap for the confusion matrix
-    col_colors = [disease_color_mapping[x] for x in df['disease']]
-    clustermap = sns.clustermap(
+    disease_df = df[['donor_id', 'disease']].drop_duplicates().set_index('donor_id')
+    col_colors = pd.Series([disease_color_mapping[x] for x in disease_df['disease']])
+    col_colors.index = disease_df.index
+    sns.clustermap(
         conf_mat.T, 
-        figsize=(12, 5), 
-        col_colors=col_colors,
+        figsize = (10,10), 
+        col_colors = col_colors,
+        robust=True,
         xticklabels=True,
-        yticklabels=True
+        yticklabels=True,
+        linewidths=0
     )
     legend_handles = [plt.Line2D([0], [0], marker='o', color='w', label=cat, markerfacecolor=disease_color_mapping[cat], markersize=10) for cat in df['disease'].cat.categories]
     plt.legend(
@@ -163,8 +172,10 @@ def plot_celltype_distribution(pbulk_adata, savedir=None):
     if savedir is not None:
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.celltype_distribution.pdf', bbox_inches='tight')
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.celltype_distribution.png', bbox_inches='tight')
-    
-    plt.show()
+        plt.show()
+    else:
+        plt.show()
+
 
     
 def plot_var_stats(pbulk_adata, savedir=None):
@@ -184,8 +195,11 @@ def plot_var_stats(pbulk_adata, savedir=None):
     if savedir is not None:
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.var_stats.pdf', bbox_inches='tight')
         plt.savefig(f'{savedir}/cellxgene_targets_{disease_ontology_id.replace(":","_")}.var_stats.png', bbox_inches='tight')
+        plt.show()
+    else:
+        plt.show()
+    return(None)
     
-    plt.show()
         
 cxg_metadata = pd.read_csv(data_dir + 'cellxgene_hsapiens_donor_metadata.disease_relevant_annotation.csv', index_col=0)
 
@@ -212,6 +226,10 @@ if not os.path.exists(plot_dir):
     os.mkdir(plot_dir)
 
 plot_var_stats(pbulk_adata, savedir = plot_dir)
+plt.clf()
 plot_ncells(pbulk_adata, savedir = plot_dir)
+plt.clf()
 plot_targets_dotplot(pbulk_adata, targets, disease_ontology_id, disease_name, savedir = plot_dir)
-# plot_celltype_distribution(pbulk_adata, savedir = plot_dir)
+plt.clf()
+plot_celltype_distribution(pbulk_adata, savedir = plot_dir)
+plt.clf()

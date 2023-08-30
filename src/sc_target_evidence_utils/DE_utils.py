@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 import warnings
 import os
 import anndata
@@ -16,7 +16,7 @@ from rpy2.robjects.packages import STAP
 def _run_glmGamPoi_DE(pbulk_adata, 
                      design = '~ disease',
                     ref_level = None,
-                    contrast = 'disease',
+                    contrast: Union[str, List[str]] = 'disease',
                     n_hvgs = None
                     ) -> pd.DataFrame:
     '''
@@ -27,7 +27,7 @@ def _run_glmGamPoi_DE(pbulk_adata,
     - pbulk_adata: anndata object with pseudobulked data
     - design: R formula for design matrix
     - ref_level: reference level for design matrix (default: None, one vs all test)
-    - contrast: contrast to test (default: 'disease')
+    - contrast: contrast to test (default: 'disease'), can be a list of contrasts
 
     Returns:
     -------
@@ -45,7 +45,7 @@ def _run_glmGamPoi_DE(pbulk_adata,
     else:
         n_hvgs = f'{n_hvgs}'
 
-    glmgampoi_str = f'''
+    glmgampoi_fit_str = f'''
         library(SingleCellExperiment)
         library(glmGamPoi)
         library(scran)
@@ -69,18 +69,52 @@ def _run_glmGamPoi_DE(pbulk_adata,
 
             ## Fit
             fit <- glm_gp(sce, design = {design}, reference_level = {ref_level}, size_factors = colData(sce)[['size_factors']])
+        '''
+        
+    if isinstance(contrast, list):
+        contrast_ls_str = "c(" + ", ".join([f"'{item}'" for item in contrast]) + ")"
+        glmgampoi_test_str = f'''
+                ## Test 
+                de_res <- data.frame()
+                for (c in {contrast_ls_str}){{
+                    de_res_c <- test_de(fit, contrast = c)
+                    
+                    if (!is.null({n_hvgs})){{
+                        de_res_c[,'gene_name'] <- pbulk_sdata_var[hvgs,]['feature_name']
+                        de_res_c[,'gene_id'] <- pbulk_sdata_var[hvgs,]['feature_id']
+                    }} else {{
+                        de_res_c[,'gene_name'] <- pbulk_sdata_var['feature_name']
+                        de_res_c[,'gene_id'] <- pbulk_sdata_var['feature_id']
+                    }}
+                    de_res_c[,'contrast'] <- c
+                    de_res <- rbind(de_res, de_res_c)
+                }}
 
-            ## Test 
-            de_res <- test_de(fit, contrast = '{contrast}')
-            if (!is.null({n_hvgs})){{
-                de_res[,'gene_name'] <- pbulk_sdata_var[hvgs,]['feature_name']
-                de_res[,'gene_id'] <- pbulk_sdata_var[hvgs,]['feature_id']
-            }} else {{
-                de_res[,'gene_name'] <- pbulk_sdata_var['feature_name']
-                de_res[,'gene_id'] <- pbulk_sdata_var['feature_id']
-            }}
-            return(de_res)
-        }}'''
+                if (!is.null({n_hvgs})){{
+                    de_res[,'gene_name'] <- pbulk_sdata_var[hvgs,]['feature_name']
+                    de_res[,'gene_id'] <- pbulk_sdata_var[hvgs,]['feature_id']
+                }} else {{
+                    de_res[,'gene_name'] <- pbulk_sdata_var['feature_name']
+                    de_res[,'gene_id'] <- pbulk_sdata_var['feature_id']
+                }}
+                return(de_res)
+            }}'''
+
+    else:
+        glmgampoi_test_str = f'''
+                ## Test 
+                de_res <- test_de(fit, contrast = '{contrast}')
+                if (!is.null({n_hvgs})){{
+                    de_res[,'gene_name'] <- pbulk_sdata_var[hvgs,]['feature_name']
+                    de_res[,'gene_id'] <- pbulk_sdata_var[hvgs,]['feature_id']
+                }} else {{
+                    de_res[,'gene_name'] <- pbulk_sdata_var['feature_name']
+                    de_res[,'gene_id'] <- pbulk_sdata_var['feature_id']
+                }}
+                return(de_res)
+            }}'''
+        
+    glmgampoi_str = glmgampoi_fit_str + glmgampoi_test_str
     
     sc.pp.filter_genes(pbulk_adata, min_cells = 3) # exclude genes expressed in < 3 pseudobulk samples
     
@@ -121,8 +155,9 @@ def _run_glmGamPoi_DE(pbulk_adata,
 def celltype_marker_targets(pbulk_adata: anndata.AnnData, 
                             min_replicates: int = 3,
                             confounders: List[str] = ['suspension_type', 'assay'],
-                            remove_intercept = False,
+                            # remove_intercept = False,
                             n_hvgs = None
+                            # ct_term = None,
                             ) -> pd.DataFrame:
     '''
     Run DE analysis to identify cell type marker genes.
@@ -134,7 +169,7 @@ def celltype_marker_targets(pbulk_adata: anndata.AnnData,
     - confounders: list of confounding variables to include in design matrix (default: ['suspension_type', 'assay'])
     - remove_intercept: indicates whether intercept should be removed (i.e. assuming the reference level in = 0)
     - n_hvgs: number of HVGs to select for DE testing (default: None, no HVG selection)
-
+    
     Returns:
     -------
     - celltype_de_results: dataframe with DE results for each cell type and tested gene
@@ -150,40 +185,48 @@ def celltype_marker_targets(pbulk_adata: anndata.AnnData,
     if 'count' not in n_replicates.columns:
         n_replicates.columns = ['high_level_cell_type_ontology_term_id', 'disease', 'count']
     ct_labels = n_replicates[n_replicates['count'] >= min_replicates]['high_level_cell_type_ontology_term_id'].unique()
-    pbulk_adata_test = pbulk_adata_test[pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].isin(ct_labels)].copy()
+    pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = np.where(
+    pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].isin(ct_labels), 
+    pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'],
+    'other'
+    )
 
     pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].str.replace(":", "_").astype('category')
     ct_categories = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.categories.tolist()
+
+    if 'other' in ct_categories:
+        ct_categories.remove('other')
+        ct_categories.append('other')
+        pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.reorder_categories(ct_categories[::-1])
 
     ## Select confounders with multiple values
     for c in confounders:
         if pbulk_adata_test.obs[c].nunique() == 1:
             confounders.remove(c)
     confounders_str = '+'.join(confounders)
+    # if remove_intercept:
+    #     DE_design = f'~ 0 + {confounders_str} + n_cells + high_level_cell_type_ontology_term_id'
+    # else:
+    DE_design = f'~ n_cells + {confounders_str} + high_level_cell_type_ontology_term_id'        
 
-    celltype_de_results = pd.DataFrame()
-    for ct_term in pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].unique():
-        # Reorder cell type categories to include in design matrix
-        ct_categories.remove(ct_term)
-        ct_categories.append(ct_term)
-        pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.reorder_categories(ct_categories)
-        
-        if remove_intercept:
-            DE_design = f'~ 0 + {confounders_str} + n_cells + high_level_cell_type_ontology_term_id'
-        else:
-            DE_design = f'~ {confounders_str} + n_cells + high_level_cell_type_ontology_term_id'
+    # celltype_de_results = pd.DataFrame()
+    # if ct_term is None:
+    # for ct_term in pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].unique():
+    #     # Reorder cell type categories to include in design matrix
+    #     ct_categories.remove(ct_term)
+    #     ct_categories.append(ct_term)
+    #     pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'] = pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.reorder_categories(ct_categories)
             
-        de_results = _run_glmGamPoi_DE(
+    celltype_de_results = _run_glmGamPoi_DE(
             pbulk_adata_test,
-                design = DE_design,
-                ref_level = None,
-                contrast = f'high_level_cell_type_ontology_term_id{ct_term}',
-                n_hvgs = n_hvgs
-                )
+            design = DE_design,
+            ref_level = None,
+            contrast = ['high_level_cell_type_ontology_term_id' + ct_term for ct_term in pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].cat.categories[1:].tolist()],
+            n_hvgs = n_hvgs
+            )
 
-        de_results['high_level_cell_type_ontology_term_id'] = ct_term
-        celltype_de_results = pd.concat([celltype_de_results, de_results], axis=0)
-
+    celltype_de_results['high_level_cell_type_ontology_term_id'] = celltype_de_results['contrast'].str.replace('high_level_cell_type_ontology_term_id', '').copy()
+    celltype_de_results.drop('contrast', axis=1, inplace=True)    #  = pd.concat([celltype_de_results, de_results], axis=0)
     return(celltype_de_results)
 
 

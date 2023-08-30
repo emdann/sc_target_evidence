@@ -101,7 +101,7 @@ adata.obs["high_level_cell_type_ontology_term_id"] = [
     ct_rename_dict[x] if x in ct_rename_dict.keys() else 'low_quality_annotation' for x in adata.obs["cell_type_ontology_term_id"] 
     ]
 
-plotting_utils.plot_celltype_rename(adata.obs, graph, savedir=output_dir + '/plots/')
+plotting_utils.plot_celltype_rename(adata.obs, disease_ontology_id, graph, savedir=output_dir + '/plots/')
 
 
 ## Pseudo-bulk by cell ontology and sample

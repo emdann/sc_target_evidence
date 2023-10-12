@@ -78,7 +78,7 @@ def get_disease_targets_sc_data(
     tissue_ids_str = '[' + ', '.join(f"'{item}'" for item in tissue_ids) + ']'
     disease_ids_str = '[' + ', '.join(f"'{item}'" for item in disease_ids) + ']'
     dataset_ids_str = '[' + ', '.join(f"'{item}'" for item in dataset_ids) + ']'
-    obs_filter_str = f"dataset_id in {dataset_ids_str} and disease_ontology_term_id in {disease_ids_str} and tissue_general in {tissue_ids_str}"
+    obs_filter_str = f"dataset_id in {dataset_ids_str} and disease_ontology_term_id in {disease_ids_str} and tissue_general in {tissue_ids_str} and is_primary_data == True"
     
     with cellxgene_census.open_soma(census_version="2023-05-15") as census:
         print("Getting anndata")

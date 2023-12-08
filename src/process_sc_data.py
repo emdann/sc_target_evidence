@@ -21,13 +21,14 @@ args = parser.parse_args()
 def clean_disease(pbulk_adata):
     '''Uniform disease naming.'''        
     DISEASE_RENAME = {'cardiomyopathy':[
-        'arrhythmogenic right ventricular cardiomyopathy',
-        'dilated cardiomyopathy',
-        'non-compaction cardiomyopathy'],
-    'renal cell carcinoma':['chromophobe renal cell carcinoma', 'clear cell renal carcinoma'],
-    'colorectal cancer': ['colorectal cancer', 'colorectal neoplasm'],
-        'non-small cell lung carcinoma':['lung large cell carcinoma', 'non-small cell lung carcinoma']
-        }
+    'arrhythmogenic right ventricular cardiomyopathy',
+     'dilated cardiomyopathy',
+     'non-compaction cardiomyopathy'],
+  'renal cell carcinoma':['chromophobe renal cell carcinoma', 'clear cell renal carcinoma', 'nonpapillary renal cell carcinoma',
+                         'kidney oncocytoma', ],
+  'colorectal cancer': ['colorectal cancer', 'colorectal neoplasm'],
+    'non-small cell lung carcinoma':['lung large cell carcinoma', 'non-small cell lung carcinoma']
+    }
 
     disease_rename_rev = {x:k for k,v in DISEASE_RENAME.items() for x in v }
 
@@ -88,6 +89,7 @@ assay_blacklist = [
     ]
 
 adata = adata[~adata.obs['assay'].isin(assay_blacklist)].copy()
+assert all(adata.obs['is_primary_data'])
 
 ## Clean cell ontologies
 print("Cleaning cell ontologies...")

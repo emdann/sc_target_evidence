@@ -80,7 +80,7 @@ def get_disease_targets_sc_data(
     dataset_ids_str = '[' + ', '.join(f"'{item}'" for item in dataset_ids) + ']'
     obs_filter_str = f"dataset_id in {dataset_ids_str} and disease_ontology_term_id in {disease_ids_str} and tissue_general in {tissue_ids_str} and is_primary_data == True"
     
-    with cellxgene_census.open_soma(census_version="2023-05-15") as census:
+    with cellxgene_census.open_soma(census_version="2023-07-25") as census:
         print("Getting anndata")
         # Get expression of target genes as anndata
         adata = cellxgene_census.get_anndata(
@@ -118,79 +118,79 @@ def get_disease_targets_sc_data(
         
     return(adata)
 
-def get_disease_targets_dataset(
-    dataset_ids,
-    tissue_ids,
-    disease_ids,
-    target_genes: List[str], 
-    keep_all_genes: bool = False
-    ):
-    '''
-    Download data for disease of interest from cellxgene database.
+# def get_disease_targets_dataset(
+#     dataset_ids,
+#     tissue_ids,
+#     disease_ids,
+#     target_genes: List[str], 
+#     keep_all_genes: bool = False
+#     ):
+#     '''
+#     Download data for disease of interest from cellxgene database.
     
-    Returns:
-    --------
-    adata: AnnData object for targets of interest
-    ''' 
+#     Returns:
+#     --------
+#     adata: AnnData object for targets of interest
+#     ''' 
     
-    OBS_COLS = [
-            "assay", 
-            "tissue_general", 
-            "suspension_type", 
-            "disease", 
-            'donor_id', 
-            'cell_type_ontology_term_id',
-            'cell_type',
-            'is_primary_data'
-    ]
+#     OBS_COLS = [
+#             "assay", 
+#             "tissue_general", 
+#             "suspension_type", 
+#             "disease", 
+#             'donor_id', 
+#             'cell_type_ontology_term_id',
+#             'cell_type',
+#             'is_primary_data'
+#     ]
     
-    # Make string of features 
-    target_genes_str = '[' + ', '.join(f"'{item}'" for item in target_genes) + ']'
-    if keep_all_genes:
-        var_filter_str = None
-    else:
-        var_filter_str = f"feature_id in {target_genes_str}"
+#     # Make string of features 
+#     target_genes_str = '[' + ', '.join(f"'{item}'" for item in target_genes) + ']'
+#     if keep_all_genes:
+#         var_filter_str = None
+#     else:
+#         var_filter_str = f"feature_id in {target_genes_str}"
     
-    # Make query string
-    tissue_ids_str = '[' + ', '.join(f"'{item}'" for item in tissue_ids) + ']'
-    disease_ids_str = '[' + ', '.join(f"'{item}'" for item in disease_ids) + ']'
-    dataset_ids_str = '[' + ', '.join(f"'{item}'" for item in dataset_ids) + ']'
-    obs_filter_str = f"dataset_id in {dataset_ids_str} and disease_ontology_term_id in {disease_ids_str} and tissue_general in {tissue_ids_str}"
+#     # Make query string
+#     tissue_ids_str = '[' + ', '.join(f"'{item}'" for item in tissue_ids) + ']'
+#     disease_ids_str = '[' + ', '.join(f"'{item}'" for item in disease_ids) + ']'
+#     dataset_ids_str = '[' + ', '.join(f"'{item}'" for item in dataset_ids) + ']'
+#     obs_filter_str = f"dataset_id in {dataset_ids_str} and disease_ontology_term_id in {disease_ids_str} and tissue_general in {tissue_ids_str}"
     
-    with cellxgene_census.open_soma(census_version="2023-05-15") as census:
-        print("Getting anndata")
-        # Get expression of target genes as anndata
-        adata = cellxgene_census.get_anndata(
-                census = census,
-                organism = "Homo sapiens",
-                var_value_filter = var_filter_str,
-                obs_value_filter = obs_filter_str,
-                column_names = {"obs": OBS_COLS}
-            )
+#     with cellxgene_census.open_soma(census_version="2023-07-25") as census:
+#         print("Getting anndata")
+#         # Get expression of target genes as anndata
+#         adata = cellxgene_census.get_anndata(
+#                 census = census,
+#                 organism = "Homo sapiens",
+#                 var_value_filter = var_filter_str,
+#                 obs_value_filter = obs_filter_str,
+#                 column_names = {"obs": OBS_COLS}
+#             )
         
-        # Store total counts per cell (library size for DE analysis) 
-        print("Getting total counts x cell")
-        hsapiens = census["census_data"]["homo_sapiens"]
-        if not keep_all_genes:
-            with hsapiens.axis_query(
-                measurement_name="RNA",
-                obs_query=soma.AxisQuery(value_filter=obs_filter_str),
-            ) as query:
-                obs_df = query.obs().concat().to_pandas().set_index("soma_joinid")
-                n_obs = len(obs_df)
+#         # Store total counts per cell (library size for DE analysis) 
+#         print("Getting total counts x cell")
+#         hsapiens = census["census_data"]["homo_sapiens"]
+#         if not keep_all_genes:
+#             with hsapiens.axis_query(
+#                 measurement_name="RNA",
+#                 obs_query=soma.AxisQuery(value_filter=obs_filter_str),
+#             ) as query:
+#                 obs_df = query.obs().concat().to_pandas().set_index("soma_joinid")
+#                 n_obs = len(obs_df)
 
-                raw_sum = np.zeros((n_obs,), dtype=np.float64)  # accumulate the sum of expression
+#                 raw_sum = np.zeros((n_obs,), dtype=np.float64)  # accumulate the sum of expression
 
-                # query.X() returns an iterator of pyarrow.Table, with X data in COO format.
-                # You can request an indexer from the query that will map it to positional indices
-                indexer = query.indexer
-                for arrow_tbl in query.X("raw").tables():
-                    obs_dim = indexer.by_obs(arrow_tbl["soma_dim_0"])
-                    data = arrow_tbl["soma_data"]
-                    np.add.at(raw_sum, obs_dim, data)
-        else:
-            raw_sum = np.array(adata.X.sum(1)).flatten()
+#                 # query.X() returns an iterator of pyarrow.Table, with X data in COO format.
+#                 # You can request an indexer from the query that will map it to positional indices
+#                 indexer = query.indexer
+#                 for arrow_tbl in query.X("raw").tables():
+#                     obs_dim = indexer.by_obs(arrow_tbl["soma_dim_0"])
+#                     data = arrow_tbl["soma_data"]
+#                     np.add.at(raw_sum, obs_dim, data)
+#         else:
+#             raw_sum = np.array(adata.X.sum(1)).flatten()
 
-        adata.obs['total_counts'] = raw_sum
+#         adata.obs['total_counts'] = raw_sum
         
-    return(adata)
+#     return(adata)

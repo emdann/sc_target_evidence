@@ -16,8 +16,7 @@ universe_dict = {}
 protein_coding_genes = genes[
     (genes['gene_biotype'] == 'protein_coding') & \
     (genes['description'] != 'novel protein') & \
-    (genes['seq_name'].isin(['X', '20', '1', '6', '3', '7', '12', '11', '4', '17', '2', '16',
-       '8', '19', '9', '13', '14', '5', '22', '10', 'Y', '18', '15']) )
+    (genes['seq_name'].isin([str(x) for x in np.arange(1,23)] + ['X', 'Y']) )
 ]
 universe_dict['protein_coding_targets'] = protein_coding_genes.gene_id.tolist()
 

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import scanpy as sc
 import scipy
 import anndata
+import genomic_features as gf
 import matplotlib
 
 import obonet
@@ -207,7 +208,7 @@ cxg_metadata = pd.read_csv(data_dir + 'cellxgene_hsapiens_donor_metadata.disease
 targets = pd.read_csv(data_dir + 'TargetDiseasePairs_OpenTargets_cellXgeneID_12072023.csv', index_col=0)
 
 ## Load pseudobulk_object
-pbulk_adata = sc.read_h5ad(data_dir + f'cellxgene_targets_{disease_ontology_id.replace(":", "_")}.pbulk_all_OT_targets.h5ad')
+pbulk_adata = sc.read_h5ad(data_dir + f'cellxgene_targets_{disease_ontology_id.replace(":", "_")}.pbulk_all_genes.h5ad')
 
 ## Exclude low quality cells
 pbulk_adata = pbulk_adata[pbulk_adata.obs['high_level_cell_type_ontology_term_id'] != 'low_quality_annotation'].copy()
@@ -217,6 +218,11 @@ cpms = scipy.sparse.csr_matrix(pbulk_adata.X.T / pbulk_adata.obs['size_factors']
 pbulk_adata.layers['logcounts'] = np.log1p(cpms).T
 pbulk_adata.obs['high_level_cell_type'] = [f'{ontology2name(x)} ({x})' for x in pbulk_adata.obs['high_level_cell_type_ontology_term_id'].tolist()]
 pbulk_adata.obs['sample_id'] = ['-'.join(x[1:]) for x in pbulk_adata.obs_names.str.split("-")]
+
+if not 'feature_name' in pbulk_adata.var:
+    ensdb = gf.ensembl.annotation(species="Hsapiens", version="108")
+    genes = ensdb.genes()
+    pbulk_adata.var['feature_name'] = genes.set_index('gene_id').loc[pbulk_adata.var['feature_id']].gene_name.values
 
 disease_relevant_tissue = cxg_metadata[cxg_metadata['disease_ontology_id'] == disease_ontology_id].disease_relevant_tissue.unique()[0]
 disease_name = cxg_metadata[cxg_metadata['disease_ontology_id'] == disease_ontology_id].disease.unique()[0]

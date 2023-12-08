@@ -1,5 +1,6 @@
 import os
 import scanpy as sc
+import genomic_features as gf
 from sc_target_evidence_utils import DE_utils, cellontology_utils
 import argparse
 parser = argparse.ArgumentParser()
@@ -24,6 +25,11 @@ n_hvgs = args.n_hvgs
 # Load pseudobulk data
 pbulk_adata = sc.read_h5ad(data_dir + f'cellxgene_targets_{disease_ontology_id.replace(":", "_")}.pbulk_all_genes.h5ad')
 sc.pp.filter_genes(pbulk_adata, min_cells = 3) # exclude genes expressed in < 3 pseudobulk samples
+
+if not 'feature_name' in pbulk_adata.var:
+    ensdb = gf.ensembl.annotation(species="Hsapiens", version="108")
+    genes = ensdb.genes()
+    pbulk_adata.var['feature_name'] = genes.set_index('gene_id').loc[pbulk_adata.var['feature_id']].gene_name.values
 
 # Run DE analysis
 disease_res, bulk_res = DE_utils.disease_marker_targets(pbulk_adata, n_hvgs = n_hvgs)

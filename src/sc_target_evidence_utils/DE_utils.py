@@ -261,6 +261,8 @@ def disease_marker_targets(pbulk_adata: anndata.AnnData,
 
     # Exclude cell types with insufficient replicates in healthy and disease
     n_replicates = pbulk_adata_test.obs.value_counts(['high_level_cell_type_ontology_term_id', 'disease']).reset_index()
+    if 'count' not in n_replicates.columns:
+        n_replicates.columns = ['high_level_cell_type_ontology_term_id', 'disease', 'count']
     n_replicates = n_replicates[n_replicates['count'] >= min_replicates].groupby(['high_level_cell_type_ontology_term_id']).count()['count']
     ct_labels = n_replicates[n_replicates > 1].index.tolist()
     pbulk_adata_test = pbulk_adata_test[pbulk_adata_test.obs['high_level_cell_type_ontology_term_id'].isin(ct_labels)].copy()

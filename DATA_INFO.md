@@ -35,5 +35,5 @@ DE analysis results:
 
 Single-cell evidence outputs: 
 
-- [on server] **disease_target_evidence.all.csv** - merged table of target-disease pairs with clinical status from OpenTargets, genetic evidence from OpenTargets and single-cell evidence from DE analysis, for all tested diseases. 
+- **suppl_table_disease_target_evidence.csv** - merged table of target-disease pairs with clinical status from OpenTargets, genetic evidence from OpenTargets and single-cell evidence from DE analysis, for all tested diseases. 
 

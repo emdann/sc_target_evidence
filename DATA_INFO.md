@@ -4,6 +4,14 @@ Data folder:
  - In repo: `sc_target_evidence/data/`
  - On server (includes git-ignored large files): `/nfs/team205/ed6/bin/sc_target_evidence/data/`
 
+
+### Figshare data 
+- **suppl_table_cxg_sample_metadata.post_qc.csv** - sample-level metadata for data from CellXGene collections used in study 
+- **suppl_table_diseases.csv** - table of diseases available in CellXGene considered in study, with disease-relevant tissue annotations and reasons to exclude
+- **suppl_table_disease_target_evidence.csv** - table of target-disease pairs with indication of clinical success and omic support  
+- **suppl_table_odds_ratios.all.csv** - Results of association analysis between omic support (`evidence`) and clinical success (`clinical status`) across diseases
+- **suppl_table_odds_ratios.disease.csv** - Results of association analysis between omic support (`evidence`) and clinical success (`clinical status`) by disease
+
 ### Metadata
 
 - **cellxgene_hsapiens_donor_metadata.csv** - donor-level metadata for all adult studies in CellxGene collections (see `cellxgene_census_stats.ipynb` for download)

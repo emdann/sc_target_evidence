@@ -30,6 +30,11 @@ def get_OR(
     if gene_universe is not None:
         ## Filter genes in universe
         targets_disease_df = targets_disease_df[targets_disease_df['gene_id'].isin(gene_universe)].copy()
+
+    if sum(targets_disease_df[evidence_col]) == 0:
+        raise ValueError(f'no gene with {evidence_col} evidence')
+    if sum(targets_disease_df[clinical_status_col]) == 0:
+        raise ValueError(f'no gene in status {clinical_status_col}')
     
     # Get contingency table
     cont = pd.crosstab(
@@ -96,9 +101,12 @@ def compute_grouped_OR(
         for ev in evidence_cols:
             for status in clinical_status_cols:
                 if targets_evidence_df[status].sum() > 0:
-                    or_df = get_OR(targets_evidence_df, ev, status, gene_universe)
-                    or_df[group_by] = g
-                    or_df_all = pd.concat([or_df_all, or_df], axis=0)
+                    try:
+                        or_df = get_OR(targets_evidence_df, ev, status, gene_universe)
+                        or_df[group_by] = g
+                        or_df_all = pd.concat([or_df_all, or_df], axis=0)
+                    except ValueError:
+                        continue
                 else:
                     continue
     return(or_df_all)

@@ -4,7 +4,7 @@ Meta-analysis of drug target evidence in single-cell data
 ## Contents
 
 - `analysis` - Notebooks and scripts for analysis
-- `data` - Metadata and output files (see [DATA_INFO](https://github.com/emdann/sc_target_evidence/blob/master/DATA_INFO.md) for details on metadata and output files)
+- `data` - Metadata and output files (see [Data Pointers](https://github.com/emdann/sc_target_evidence/blob/master/README.md#data-pointers))
 - `src` - Main workflow scripts and functions
     - `sc_target_evidence_utils` - Python package with utility functions
 - `tests` - Unit tests for utility functions
@@ -29,6 +29,8 @@ pip install .
 
 ## Data pointers
 
+Additional processed data is available via Figshare (doi:10.6084/m9.figshare.25360129)
+
 ### Metadata
 
 - [suppl_table_diseases.csv](data/suppl_table_diseases.csv) - table of diseases available in CZ CellxGene database considered for study (supplementary table 1)
@@ -37,7 +39,7 @@ pip install .
 
 ### scRNA-seq data
 
-- [on server] **cellxgene_targets_{MONDO_ID}.pbulk_all_genes.h5ad** - AnnData object with aggregated expression of all available genes in disease-relevant tissue and pseudo-bulk.
+- [see [figshare](doi:10.6084/m9.figshare.25360129)] **cxg_aggregated_scRNA.tar.gz** - AnnData objects of aggregated scRNA-seq data used for DE analysis for each disease. Gene expression counts are aggregated by sample and cell type annotation.
 
 ### Diagnostic plots
 
@@ -50,16 +52,8 @@ Plot folders: `sc_target_evidence/data/plots/{disease_id}_{disease_name}`
 
 ### Analysis outputs
 
-- **suppl_table_disease_target_evidence.csv** - merged table of target-disease pairs with clinical status from OpenTargets, genetic evidence from OpenTargets and single-cell evidence from DE analysis, for all tested diseases. 
-
-
-#### Differential expression analysis outputs
-
-DE analysis results: 
-- [on server] **DE_celltype_{disease_id}.hvgs.csv** - results of differential expression analysis between cell types, ran on top 7500 highly variable genes (output of [`sc_target_evidence_utils.DE_utils.celltype_marker_targets`](https://github.com/emdann/sc_target_evidence/blob/9e9658d9443f6f1ca642f008ffc18e847982c476/src/sc_target_evidence_utils/DE_utils.py#L155)). Results for all tested cell types are shown. 
-- [on server] **DE_diseasecelltype_{disease_id}.hvgs.csv** - results of differential expression analysis between disease and healthy cells in each cell types, ran on top 7500 highly variable genes (output of [`sc_target_evidence_utils.DE_utils.disease_marker_targets`](https://github.com/emdann/sc_target_evidence/blob/9e9658d9443f6f1ca642f008ffc18e847982c476/src/sc_target_evidence_utils/DE_utils.py#L224)). Results for all tested cell types are shown. 
-- [on server] **DE_diseasebulk_{disease_id}.hvgs.csv** - results of differential expression analysis between disease and healthy cells in bulked samples (ignoring cell type), ran on top 7500 highly variable genes (output of [`sc_target_evidence_utils.DE_utils.disease_marker_targets`](https://github.com/emdann/sc_target_evidence/blob/9e9658d9443f6f1ca642f008ffc18e847982c476/src/sc_target_evidence_utils/DE_utils.py#L224)).
-
-
-
-
+- [see [figshare](doi:10.6084/m9.figshare.25360129)] **DEA_results.tar.gz** - Results of differential expression analysis for each disease
+- [suppl_table_disease_target_evidence.csv](data/suppl_table_disease_target_evidence.csv) - merged table of target-disease pairs with clinical status from OpenTargets, genetic evidence from OpenTargets and single-cell evidence from DE analysis, for all tested diseases.
+- [suppl_table_drugs.csv](data/suppl_table_drugs.csv) - merged table of drugs considered for analysis (investigational or approved drugs for analysed diseases).
+- [suppl_table_odds_ratios.all.csv](data/suppl_table_odds_ratios.all.csv) - Results of association analysis between omic support (`evidence`) and clinical success (`clinical status`) across diseases
+- [suppl_table_odds_ratios.disease.csv](data/suppl_table_odds_ratios.disease.csv) - Results of association analysis between omic support (`evidence`) and clinical success (`clinical status`) by disease

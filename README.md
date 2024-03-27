@@ -4,7 +4,7 @@ Meta-analysis of drug target evidence in single-cell data
 ## Contents
 
 - `analysis` - Notebooks and scripts for analysis
-- `data` - Metadata and output files (see [DATA_INFO](https://github.com/emdann/sc_target_evidence/blob/master/DATA_INFO.md) for details on metadata and output files)
+- `data` - Metadata and output files (see [Data Pointers](https://github.com/emdann/sc_target_evidence/blob/master/README.md#data-pointers))
 - `src` - Main workflow scripts and functions
     - `sc_target_evidence_utils` - Python package with utility functions
 - `tests` - Unit tests for utility functions
@@ -28,6 +28,8 @@ pip install .
 ```
 
 ## Data pointers
+
+Additional processed data is available via Figshare (doi:10.6084/m9.figshare.25360129)
 
 ### Metadata
 

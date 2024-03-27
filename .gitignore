@@ -13,6 +13,7 @@ TargetDiseasePairs_*.csv
 
 # DE analysis outputs
 DE_*.csv
+*.hvgs.csv
 disease_target_evidence*.csv
 failed_*.txt
 

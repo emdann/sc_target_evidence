@@ -1,0 +1,412 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+#this notebook plots figures for exploration of drugs for studied diseases
+
+install.packages("GGally")
+library(GGally)
+
+
+library(ggplot2)
+library(dplyr)
+
+```
+```{r}
+# molecule information where studied indication is one in a list of investigational or approved 
+
+data<-read.csv("drugs_indications_sc_genetic_evidence_MOA_03062024.csv", sep= '\t')
+
+
+data=subset(data, maxPhase != -1)
+data=subset(data, maxPhase != 0.5)
+
+table(data$maxPhase, data$has_any_sc_evidence)
+
+data_new<-data
+
+data_new=within(data_new,{
+  result=NA
+  result[has_any_sc_evidence=="False" & has_any_genetic_evidence=="False"]='Neither'
+  result[has_any_sc_evidence=="True" & has_any_genetic_evidence=="True"]='Both SC and Gen'
+  result[has_any_sc_evidence=="True" & has_any_genetic_evidence=="False"]='SC Only'
+  result[has_any_sc_evidence=="False" & has_any_genetic_evidence=="True"]='Gen Only'
+})
+
+data_new=within(data_new, {
+  sc_ind = NA
+  sc_ind[has_any_sc_evidence=="False"] = 0
+  sc_ind[has_any_sc_evidence=="True"] = 1
+})
+
+data_new=within(data_new, {
+  gen_ind = NA
+  gen_ind[has_any_genetic_evidence=="False"] = 0
+  gen_ind[has_any_genetic_evidence=="True"] = 1
+})
+
+
+data_approved_new<-subset(data_new, approvalYear != 'no approval year')
+
+data_approved_new[c('approvalYear')] <- sapply(data_approved_new[c('approvalYear')], as.numeric)
+
+result_new<-data_approved_new%>%
+  mutate(period_5yr = case_when(approvalYear %in% 1939:1945 ~ "1939-1945",
+                            approvalYear %in% 1946:1950 ~ "1946-1950",
+                            approvalYear %in% 1951:1955 ~ "1951-1955",
+                            approvalYear %in% 1956:1960 ~ "1956-1960",
+                            approvalYear %in% 1961:1965 ~ "1961-1965",
+                            approvalYear %in% 1966:1970 ~ "1966-1970",
+                            approvalYear %in% 1971:1975 ~ "1971-1975",
+                            approvalYear %in% 1976:1980 ~ "1976-1980",
+                            approvalYear %in% 1981:1985 ~ "1981-1985",
+                            approvalYear %in% 1986:1990 ~ "1986-1990",
+                            approvalYear %in% 1991:1995 ~ "1991-1995",
+                            approvalYear %in% 1996:2000 ~ "1996-2000",
+                            approvalYear %in% 2001:2005 ~ "2001-2005",
+                            approvalYear %in% 2006:2010 ~ "2006-2010",
+                            approvalYear %in% 2011:2015 ~ "2011-2015",
+                            approvalYear %in% 2016:2022 ~ "2016-2022"
+                            ))
+
+cbbPalette <- c( "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+result_new<-as.data.frame(result_new)
+
+ggplot(data_new)+aes(x=maxPhase, fill = factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme_minimal()+ theme(legend.title = element_blank())
+
+
+result_new_reg = result_new[,c('approvalYear', 'num_indications', 'gen_ind','sc_ind')]
+result_new_reg[c('approvalYear')]<- sapply(result_new_reg[c('approvalYear')], as.numeric)
+
+pairs(result_new_reg, pch = 18, col = "steelblue")
+
+
+ggplot(result_new)+aes(fill=result, y=num_indications, x=period_5yr)+geom_boxplot()+theme(axis.text.x=element_text(angle =90))
+
+ggpairs(result_new_reg)
+
+model<-lm(num_indications ~ approvalYear + sc_ind + gen_ind + sc_ind:gen_ind, data = result_new_reg)
+summary(model)
+
+confint(model, 'sc_ind', level=0.95)
+confint(model, 'gen_ind', level=0.95)
+confint(model, 'sc_ind:gen_ind', level=0.95)
+
+#png("indications_evidence_year.png", width = 700, height=450)
+ggplot(result_new)+aes(x=period_5yr, fill =factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme(axis.text.x=element_text(angle =90))+ggtitle("Year of First Approval 1939-2022")+ theme(legend.title = element_blank())+scale_x_discrete("Year Interval")
+#dev.off()
+
+table(result_new$maxPhase, result_new$has_any_sc_evidence)
+# calculate proportion of approved drugs supported by any sc evidence
+prop_sc = (439/(559+436))*100
+print(prop_sc)
+
+pairs(result_new_reg)
+
+result_new_reg$log_num_indications  = log(result_new_reg$num_indications)
+
+
+model<-lm(num_indications ~ approvalYear + sc_ind + gen_ind + sc_ind:gen_ind, data = result_new_reg)
+
+hist(residuals(model), col = "steelblue")
+plot(fitted(model), residuals(model))
+#horizontal line at 0
+abline(h=0, lty=2)
+
+model<-lm(log_num_indications ~ approvalYear + sc_ind + gen_ind + sc_ind:gen_ind, data = result_new_reg)
+
+hist(residuals(model), col = "steelblue")
+plot(fitted(model), residuals(model))
+#horizontal line at 0
+abline(h=0, lty=2)
+
+summary(model)
+
+confint(model, 'sc_ind', level=0.95)
+confint(model, 'gen_ind', level=0.95)
+confint(model, 'sc_ind:gen_ind', level=0.95)
+
+```
+```{r}
+
+result_new<-as.data.frame(result_new)
+
+ggplot(data_new)+aes(x=maxPhase, fill = factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme_minimal()+ theme(legend.title = element_blank())
+
+ggplot(result_new)+aes(x=period_5yr, fill =factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme(axis.text.x=element_text(angle =90))+ggtitle("Year of First Approval 1939-2022")+ theme(legend.title = element_blank())+scale_x_discrete("Year Interval")
+
+result_new$y=1
+
+
+Data_df = rename(count(result_new, period_5yr, result), Freq=n)
+
+legend_title = "Support"
+
+#pdf("drug_counts_year.pdf")
+ggplot(Data_df, aes(period_5yr, Freq, fill = factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))) + geom_col() + geom_text(aes(label = Freq), size = 3, position = position_stack(vjust=0.5))+scale_fill_manual(legend_title, values=cbbPalette)+ggtitle("Year of First Approval 1939-2022")+scale_x_discrete("Year Interval")+theme(axis.text.x=element_text(angle =90))
+#dev.off()
+```
+
+
+
+```{r}
+
+
+#pdf("indications_geneticEvidence_year.pdf")
+ggplot(result_new)+aes(fill=has_any_genetic_evidence, y=num_indications, x=period_5yr)+geom_boxplot()+theme(axis.text.x=element_text(angle =90))+scale_fill_manual(values=c("#0072B2",  "#CC79A7"))+ggtitle("Number of Approved or Investigational Indications")
+#dev.off()
+
+#pdf("indications_scEvidence_year.pdf")
+ggplot(result_new)+aes(fill=has_any_sc_evidence, y=num_indications, x=period_5yr)+geom_boxplot()+theme(axis.text.x=element_text(angle =90))+scale_fill_manual(values=c("#0072B2", "#D55E00"))+ggtitle("Number of Approved or Investigational Indications")
+#dev.off()
+
+```
+```{r}
+##clear environment and run analysis and figures for drugs with phase 3 or phase 4 approval for indications studied - above plots could have an approval for a non-studied indication and once of the studied indications as an investigational indication 
+##
+
+data<-read.csv("drugs_indications_sc_genetic_evidence_MOA_03062024.csv", sep= '\t')
+
+
+data=subset(data, maxPhase != -1)
+data=subset(data, maxPhase != 0.5)
+
+table(data$maxPhase, data$has_any_sc_evidence)
+
+# this table comes from disease-drug query of open targets for studied diseases
+data2<-read.csv("OTplatform_drug_disease_evidence_summary_03062024.csv")
+
+data2<-data2[data2$max_phase>=3.0,]
+
+length(unique(data2$drug_name))
+
+drugnames<-unique(data2$drug_name)
+
+ph3_4_ind_df<-subset(data, drugName %in% drugnames)
+
+data<-ph3_4_ind_df
+
+##
+data3<-read.csv("OTplatform_drug_disease_evidence_summary_03062024.csv")
+data_MOA<-read.csv("drugs_indications_sc_genetic_evidence_MOA_03062024.csv", sep= '\t')
+
+data3<-data3[data3$max_phase>1.0,]
+
+length(unique(data3$drug_name))
+
+drugnames3<-unique(data3$drug_name)
+
+ph2_3_4_ind_df<-subset(data_MOA, drugName %in% drugnames3)
+
+ph2_3_4_ind_df$grouped_action_type<-"None"
+
+
+
+
+#ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == #"ANTAGONIST "]<-"INHIBITOR"
+
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type =="ACTIVATOR "] <- "ACTIVATOR-AGONIST-POSITIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type =="AGONIST "]<-"ACTIVATOR-AGONIST-POSITIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type =="OPENER POSITIVE MODULATOR POSITIVE ALLOSTERIC MODULATOR "]<- "ACTIVATOR-AGONIST-POSITIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "POSITIVE ALLOSTERIC MODULATOR "] <- "ACTIVATOR-AGONIST-POSITIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "POSITIVE MODULATOR "] <- "ACTIVATOR-AGONIST-POSITIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "POSITIVE MODULATOR OPENER POSITIVE ALLOSTERIC MODULATOR "] <- "ACTIVATOR-AGONIST-POSITIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type =="ANTAGONIST AGONIST "] <- "ANTAGONIST AGONIST-INHIBITOR AGONIST"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "INHIBITOR AGONIST "] <- "ANTAGONIST AGONIST-INHIBITOR AGONIST"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BINDING AGENT "] <- "BINDING AGENT"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "DEGRADER "] <- "DEGRADER"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "ANTAGONIST "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "ANTAGONIST BLOCKER "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "ANTAGONIST INHIBITOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "ANTISENSE INHIBITOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BINDING AGENT INHIBITOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BLOCKER "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR" 
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BLOCKER ANTAGONIST "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "INHIBITOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "INHIBITOR ANTAGONIST "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "INHIBITOR BINDING AGENT "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "INHIBITOR NEGATIVE ALLOSTERIC MODULATOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR" 
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "INHIBITOR OPENER "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "MODULATOR INHIBITOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "NEGATIVE ALLOSTERIC MODULATOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR" 
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "NEGATIVE MODULATOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "MODULATOR "] <- "MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "OPENER "] <- "OPENER"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "OTHER "] <- "OTHER"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "PROTEOLYTIC ENZYME "] <- "PROTEOLYTIC ENZYME"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "RELEASING AGENT "] <- "RELEASING AGENT" 
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "STABILISER "] <- "STABILISER"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "VACCINE ANTIGEN "] <- "VACCINE ANTIGEN"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BLOCKER INHIBITOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BINDING AGENT VACCINE ANTIGEN "] <-  "BINDING AGENT VACCINE ANTIGEN"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "CROSS-LINKING AGENT "] <- "CROSS-LINKING AGENT"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "MODULATOR ANTAGONIST "]<- "MODULATOR ANTAGONIST"
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "HYDROLYTIC ENZYME "]<- "HYDROLYTIC ENZYME"
+
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "DISRUPTING AGENT BINDING AGENT "]<- "DISRUPTING AGENT BINDING AGENT"
+
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "BINDING AGENT AGONIST "] <- "ACTIVATOR-AGONIST-POSITIVE MODULATOR" 
+                                   
+ph2_3_4_ind_df$grouped_action_type[ph2_3_4_ind_df$action_type == "ANTAGONIST MODULATOR "] <- "INHIBITOR-ANTAGONIST-BLOCKER-NEGATIVE MODULATOR"
+
+table(ph2_3_4_ind_df$grouped_action_type)
+
+```
+```{r}
+#write.csv(as.data.frame(table(ph3_4_ind_df$action_type)), "MOA_counts_ph3_4.csv")
+
+table(data$maxPhase, data$has_any_sc_evidence)
+
+data_new<-data
+
+data_new=within(data_new,{
+  result=NA
+  result[has_any_sc_evidence=="False" & has_any_genetic_evidence=="False"]='Neither'
+  result[has_any_sc_evidence=="True" & has_any_genetic_evidence=="True"]='Both SC and Gen'
+  result[has_any_sc_evidence=="True" & has_any_genetic_evidence=="False"]='SC Only'
+  result[has_any_sc_evidence=="False" & has_any_genetic_evidence=="True"]='Gen Only'
+})
+
+data_new=within(data_new, {
+  sc_ind = NA
+  sc_ind[has_any_sc_evidence=="False"] = 0
+  sc_ind[has_any_sc_evidence=="True"] = 1
+})
+
+data_new=within(data_new, {
+  gen_ind = NA
+  gen_ind[has_any_genetic_evidence=="False"] = 0
+  gen_ind[has_any_genetic_evidence=="True"] = 1
+})
+
+
+data_approved_new<-subset(data_new, approvalYear != 'no approval year')
+
+data_approved_new[c('approvalYear')] <- sapply(data_approved_new[c('approvalYear')], as.numeric)
+
+result_new<-data_approved_new%>%
+  mutate(period_5yr = case_when(approvalYear %in% 1939:1945 ~ "1939-1945",
+                            approvalYear %in% 1946:1950 ~ "1946-1950",
+                            approvalYear %in% 1951:1955 ~ "1951-1955",
+                            approvalYear %in% 1956:1960 ~ "1956-1960",
+                            approvalYear %in% 1961:1965 ~ "1961-1965",
+                            approvalYear %in% 1966:1970 ~ "1966-1970",
+                            approvalYear %in% 1971:1975 ~ "1971-1975",
+                            approvalYear %in% 1976:1980 ~ "1976-1980",
+                            approvalYear %in% 1981:1985 ~ "1981-1985",
+                            approvalYear %in% 1986:1990 ~ "1986-1990",
+                            approvalYear %in% 1991:1995 ~ "1991-1995",
+                            approvalYear %in% 1996:2000 ~ "1996-2000",
+                            approvalYear %in% 2001:2005 ~ "2001-2005",
+                            approvalYear %in% 2006:2010 ~ "2006-2010",
+                            approvalYear %in% 2011:2015 ~ "2011-2015",
+                            approvalYear %in% 2016:2022 ~ "2016-2022"
+                            ))
+
+cbbPalette <- c( "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+result_new<-as.data.frame(result_new)
+
+ggplot(data_new)+aes(x=maxPhase, fill = factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme_minimal()+ theme(legend.title = element_blank())
+
+
+result_new_reg = result_new[,c('approvalYear', 'num_indications', 'gen_ind','sc_ind')]
+result_new_reg[c('approvalYear')]<- sapply(result_new_reg[c('approvalYear')], as.numeric)
+
+pairs(result_new_reg, pch = 18, col = "steelblue")
+
+
+ggplot(result_new)+aes(fill=result, y=num_indications, x=period_5yr)+geom_boxplot()+theme(axis.text.x=element_text(angle =90))
+
+ggpairs(result_new_reg)
+
+model<-lm(num_indications ~ approvalYear + sc_ind + gen_ind + sc_ind:gen_ind, data = result_new_reg)
+summary(model)
+
+confint(model, 'sc_ind', level=0.95)
+confint(model, 'gen_ind', level=0.95)
+confint(model, 'sc_ind:gen_ind', level=0.95)
+
+#png("indications_evidence_year.png", width = 700, height=450)
+ggplot(result_new)+aes(x=period_5yr, fill =factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme(axis.text.x=element_text(angle =90))+ggtitle("Year of First Approval 1939-2022")+ theme(legend.title = element_blank())+scale_x_discrete("Year Interval")
+#dev.off()
+
+table(result_new$maxPhase, result_new$has_any_sc_evidence)
+# calculate proportion of approved drugs supported by any sc evidence
+
+pairs(result_new_reg)
+
+result_new_reg$log_num_indications  = log(result_new_reg$num_indications)
+
+
+model<-lm(num_indications ~ approvalYear + sc_ind + gen_ind + sc_ind:gen_ind, data = result_new_reg)
+
+hist(residuals(model), col = "steelblue")
+plot(fitted(model), residuals(model))
+#horizontal line at 0
+abline(h=0, lty=2)
+
+model<-lm(log_num_indications ~ approvalYear + sc_ind + gen_ind + sc_ind:gen_ind, data = result_new_reg)
+
+hist(residuals(model), col = "steelblue")
+plot(fitted(model), residuals(model))
+#horizontal line at 0
+abline(h=0, lty=2)
+
+summary(model)
+
+confint(model, 'sc_ind', level=0.95)
+confint(model, 'gen_ind', level=0.95)
+confint(model, 'sc_ind:gen_ind', level=0.95)
+
+
+```
+```{r}
+
+result_new<-as.data.frame(result_new)
+
+ggplot(data_new)+aes(x=maxPhase, fill = factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme_minimal()+ theme(legend.title = element_blank())
+
+ggplot(result_new)+aes(x=period_5yr, fill =factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))+geom_bar()+scale_fill_manual(values=cbbPalette)+theme(axis.text.x=element_text(angle =90))+ggtitle("Year of First Approval 1939-2022")+ theme(legend.title = element_blank())+scale_x_discrete("Year Interval")
+
+result_new$y=1
+
+
+Data_df = rename(count(result_new, period_5yr, result), Freq=n)
+
+legend_title = "Support"
+
+pdf("drug_counts_year_ph3_4_for_evidence_analysis_indications.pdf")
+ggplot(Data_df, aes(period_5yr, Freq, fill = factor(result, levels=c("Neither", "SC Only","Both SC and Gen","Gen Only")))) + geom_col() + geom_text(aes(label = Freq), size = 3, position = position_stack(vjust=0.5))+scale_fill_manual(legend_title, values=cbbPalette)+ggtitle("Year of First Approval for Phase 3/4 Approved Drugs")+scale_x_discrete("Year Interval")+theme(axis.text.x=element_text(angle =90))
+dev.off()
+```
+
+```{r}
+
+
+pdf("indications_geneticEvidence_year_ph3_4_for_evidence_analysis_indications.pdf")
+ggplot(result_new)+aes(fill=has_any_genetic_evidence, y=num_indications, x=period_5yr)+geom_boxplot()+theme(axis.text.x=element_text(angle =90))+scale_fill_manual(values=c("#0072B2",  "#CC79A7"))+ggtitle("Approved or Investigational Indications for Phase 3/4 Approved Drugs")
+dev.off()
+
+pdf("indications_scEvidence_year_ph3_4_for_evidence_analysis_indications.pdf")
+ggplot(result_new)+aes(fill=has_any_sc_evidence, y=num_indications, x=period_5yr)+geom_boxplot()+theme(axis.text.x=element_text(angle =90))+scale_fill_manual(values=c("#0072B2", "#D55E00"))+ggtitle("Approved or Investigational Indications for Phase 3/4 Approved Drugs")
+dev.off()
+
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

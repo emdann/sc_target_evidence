@@ -29,7 +29,7 @@ pip install .
 
 ## Data pointers
 
-Additional processed data is available via Figshare (doi:10.6084/m9.figshare.25360129)
+Additional processed data is available via Figshare ([doi:10.6084/m9.figshare.25360129](https://figshare.com/articles/dataset/_b_scRNA-seq_target_ID_-_processed_data_and_results_b_/25360129))
 
 ### Metadata
 

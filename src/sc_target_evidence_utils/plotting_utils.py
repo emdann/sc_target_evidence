@@ -8,7 +8,7 @@ from scanpy.metrics import confusion_matrix
 from .cellontology_utils import ontology2name
 
 
-def plot_celltype_rename(adata_obs, disease_ontology_id, graph: MultiDiGraph, savedir=None):
+def plot_celltype_rename(adata_obs, dataset_id, graph: MultiDiGraph, savedir=None):
     """
     Plot original vs aggregated cell types (using output to rename_cts_to_high_level)
     
@@ -53,6 +53,6 @@ def plot_celltype_rename(adata_obs, disease_ontology_id, graph: MultiDiGraph, sa
         plt.xticks(rotation=90)
 
         if savedir is not None:
-            plt.savefig(f'{savedir}/cellxgene_{disease_ontology_id.replace(":","_")}.celltype_harmonization.pdf', bbox_inches='tight')
-            plt.savefig(f'{savedir}/cellxgene_{disease_ontology_id.replace(":","_")}.celltype_harmonization.png', bbox_inches='tight')
+            plt.savefig(f'{savedir}/cellxgene_{dataset_id.replace(":","_")}.celltype_harmonization.pdf', bbox_inches='tight')
+            plt.savefig(f'{savedir}/cellxgene_{dataset_id.replace(":","_")}.celltype_harmonization.png', bbox_inches='tight')
    

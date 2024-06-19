@@ -53,6 +53,7 @@ def get_disease_targets_sc_data(
     
     OBS_COLS = [
             "assay", 
+            "assay_ontology_term_id", 
             "tissue_general", 
             "suspension_type", 
             "disease", 

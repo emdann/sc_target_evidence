@@ -1,31 +1,31 @@
-,disease_ontology_id,disease
-0,MONDO_0005097,squamous cell lung carcinoma
-14806,MONDO_0004298,stomach disorder
-29810,MONDO_0004514,chronic rhinitis
-45154,MONDO_0005249,pneumonia
-57249,MONDO_0005011,Crohn disease
-73838,MONDO_0005300,chronic kidney disease
-85793,MONDO_0005068,myocardial infarction
-100391,MONDO_0002771,pulmonary fibrosis
-114516,MONDO_0015925,interstitial lung disease
-128689,MONDO_0018906,follicular lymphoma
-142362,MONDO_0100096,COVID-19
-158025,MONDO_0010811,benign prostatic hyperplasia
-173283,MONDO_0013662,Barrett esophagus
-188142,MONDO_0009061,cystic fibrosis
-201410,MONDO_0008433,small cell lung carcinoma
-211966,MONDO_0004966,gastritis
-226369,MONDO_0004849,pulmonary emphysema
-239684,MONDO_0005147,type 1 diabetes mellitus
-251895,MONDO_0015759,B-cell non-Hodgkin lymphoma
-262497,MONDO_0007254,breast cancer
-279096,MONDO_0002492,acute kidney failure
-290960,MONDO_0005233,non-small cell lung carcinoma
-305921,MONDO_0004994,cardiomyopathy
-320109,MONDO_0004970,adenocarcinoma
-332687,MONDO_0005061,lung adenocarcinoma
-348202,MONDO_0005812,influenza
-361783,MONDO_0005002,chronic obstructive pulmonary disease
-375948,MONDO_0000709,Crohn ileitis
-391250,MONDO_0007915,systemic lupus erythematosus
-402682,MONDO_0015517,common variable immunodeficiency
+,disease_ontology_id,disease,indication_mesh_term,indication_mesh_id
+0,MONDO_0005097,squamous cell lung carcinoma,"Carcinoma, Squamous Cell",D002294
+14806,MONDO_0004298,stomach disorder,Gastroesophageal Reflux,D005764
+29810,MONDO_0004514,chronic rhinitis,Rhinitis,D012220
+45154,MONDO_0005249,pneumonia,Pneumonia,D011014
+57249,MONDO_0005011,Crohn disease,Crohn Disease,D003424
+73838,MONDO_0005300,chronic kidney disease,"Kidney Failure, Chronic",D007676
+85793,MONDO_0005068,myocardial infarction,Myocardial Infarction,D009203
+100391,MONDO_0002771,pulmonary fibrosis,Idiopathic Pulmonary Fibrosis,D054990
+114516,MONDO_0015925,interstitial lung disease,"Lung Diseases, Interstitial",D017563
+128689,MONDO_0018906,follicular lymphoma,"Lymphoma, Follicular",D008224
+142362,MONDO_0100096,COVID-19,COVID-19,D000086382
+158025,MONDO_0010811,benign prostatic hyperplasia,Prostatic Hyperplasia,D011470
+173283,MONDO_0013662,Barrett esophagus,Barrett Esophagus,D001471
+188142,MONDO_0009061,cystic fibrosis,Cystic Fibrosis,D003550
+201410,MONDO_0008433,small cell lung carcinoma,Small Cell Lung Carcinoma,D055752
+211966,MONDO_0004966,gastritis,Gastritis,D005756
+226369,MONDO_0004849,pulmonary emphysema,Emphysema,D004646
+239684,MONDO_0005147,type 1 diabetes mellitus,"Diabetes Mellitus, Type 1",D003922
+251895,MONDO_0015759,B-cell non-Hodgkin lymphoma,,
+262497,MONDO_0007254,breast cancer,Breast Neoplasms,D001943
+279096,MONDO_0002492,acute kidney failure,Acute Kidney Injury,D058186
+290960,MONDO_0005233,non-small cell lung carcinoma,"Carcinoma, Non-Small-Cell Lung",D002289
+305921,MONDO_0004994,cardiomyopathy,Cardiomyopathies,D009202
+320109,MONDO_0004970,adenocarcinoma,,
+332687,MONDO_0005061,lung adenocarcinoma,,
+348202,MONDO_0005812,influenza,"Influenza, Human",D007251
+361783,MONDO_0005002,chronic obstructive pulmonary disease,"Pulmonary Disease, Chronic Obstructive",D029424
+375948,MONDO_0000709,Crohn ileitis,,
+391250,MONDO_0007915,systemic lupus erythematosus,"Lupus Erythematosus, Systemic",D008180
+402682,MONDO_0015517,common variable immunodeficiency,,

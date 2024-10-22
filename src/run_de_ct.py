@@ -4,33 +4,62 @@ import genomic_features as gf
 from sc_target_evidence_utils import DE_utils, cellontology_utils
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("mondo_id",
+parser.add_argument("tissue_id",
                     type=str,
-                    help="Mondo ID of disease of interest (format should be MONDO:00000000)")
+                    help="Tissue identifier")
 parser.add_argument("--data_dir",
                     default='/nfs/team205/ed6/bin/sc_target_evidence/data/',
                     type=str,
                     help="Directory storing pseudo-bulked expression objects.")
+parser.add_argument("--mode",
+                    default=None,
+                    type=int,
+                    help="Either 'hvgs' or 'targets'. If none, both are run If 'hvgs', DE analysis is performed on highly variable genes. If 'targets', DE analysis is performed on preclinical target genes for the tissue of interest.")
 parser.add_argument("--n_hvgs",
                     default=5000,
                     type=int,
-                    help="Number of highly variable genes to use in DE analysis.")
+                    help="Number of highly variable genes to use in DE analysis (only if mode=='hvgs').")
+parser.add_argument('--target_table_file', 
+                    default = 'filtered_nelson_disease_relevant_tissues_06172024.csv', 
+                    type=str, 
+                    help="Name of target table csv file (stored in data_dir) (used only if mode == 'targets')")
+
 args = parser.parse_args()
 
 # Parse args
-disease_ontology_id = args.mondo_id
+tissue_id = args.tissue_id
 data_dir = args.data_dir
+mode = args.mode
 n_hvgs = args.n_hvgs
 
-# Load pseudobulk data
-pbulk_adata = sc.read_h5ad(data_dir + f'cellxgene_targets_{disease_ontology_id.replace(":", "_")}.pbulk_all_genes.h5ad')
-sc.pp.filter_genes(pbulk_adata, min_cells = 3) # exclude genes expressed in < 3 pseudobulk samples
+if mode is None:
+    mode = ['hvgs', 'targets']
+else:
+    mode = [mode]
 
-if not 'feature_name' in pbulk_adata.var:
-    ensdb = gf.ensembl.annotation(species="Hsapiens", version="108")
-    genes = ensdb.genes()
-    pbulk_adata.var['feature_name'] = genes.set_index('gene_id').loc[pbulk_adata.var['feature_id']].gene_name.values
+# Load pseudobulk data
+pbulk_adata = sc.read_h5ad(data_dir + f'cellxgene_targets_{tissue_id.replace(" ", "-")}.pbulk_all_genes.h5ad')
+assert 'feature_name' in pbulk_adata.var, "Please provide gene names in the feature_name column of the var slot."
 
 # Run DE analysis
-ct_res = DE_utils.celltype_marker_targets(pbulk_adata, n_hvgs = n_hvgs)
-ct_res.to_csv(f'{data_dir}/DE_celltype_{disease_ontology_id.replace(":","_")}.hvgs.csv')
+if 'hvgs' in mode:
+    ct_res_hvgs = DE_utils.celltype_marker_targets(pbulk_adata, n_hvgs = n_hvgs)
+    ct_res_hvgs.to_csv(f'{data_dir}/DE_celltype_{tissue_id.replace(" ", "-")}.hvgs.csv')
+if 'targets' in mode:
+    try:
+        pbulk_adata = pbulk_adata[:, pbulk_adata.var['is_tissue_target']].copy()
+    except KeyError:
+        # Read target table
+        target_table = pd.read_csv(f'{data_dir}/{args.target_table_file}', index_col=0)
+        try:
+            tissue_targets_df = target_table[~target_table[f'dtr_{tissue_id.replace("-", "_")}'].isna()].copy()
+        except KeyError:
+            if tissue_id == 'eye':
+                tissue_targets_df = target_table[~target_table[f'dtr_retina'].isna()].copy()
+            else:
+                raise ValueError(f'No target data for {tissue_id}')
+        adata.var['is_tissue_target'] = adata.var['feature_name'].isin(tissue_targets_df.target.unique())
+        pbulk_adata = pbulk_adata[:, pbulk_adata.var['is_tissue_target']].copy()
+    
+    ct_res_targets = DE_utils.celltype_marker_targets(pbulk_adata, n_hvgs = None)
+    ct_res_targets.to_csv(f'{data_dir}/DE_celltype_{tissue_id.replace(" ", "-")}.targets.csv')

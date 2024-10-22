@@ -1,6 +1,7 @@
 #!/bin/bash
 
 conda activate sc-target-evidence-env
+# conda activate /nfs/team205/ed6/miniconda3/envs/sc-target-evidence-env
 cd /oak/stanford/groups/pritch/users/emma/bin/sc_target_evidence/src/
 
 datadir=/oak/stanford/groups/pritch/users/emma/bin/sc_target_evidence/data/
@@ -46,16 +47,21 @@ for d in tissue_dataset_ids; do \
 #     fi
 # done
 
-# de_ready_disease_ids=$(ls $outdir/cellxgene_*pbulk_all_genes.h5ad | cut -f 9 -d '/' | sed 's/cellxgene_targets_//' | sed 's/.pbulk_all_genes.h5ad//')
+outdir=/nfs/team205/ed6/bin/sc_target_evidence/data/
+
+de_ready_disease_ids=$(ls $outdir/cellxgene_*pbulk_all_genes.h5ad | cut -f 9 -d '/' | sed 's/cellxgene_targets_//' | sed 's/.pbulk_all_genes.h5ad//')
+de_ready_tissue_ids=$(ls $outdir/cellxgene_targets_[^MP]*.h5ad | cut -f 9 -d '/' | sed 's/cellxgene_targets_//' | sed 's/.pbulk_all_genes.h5ad//')
+
 # for d in $de_ready_disease_ids; do \
 #     mv /nfs/team205/ed6/bin/sc_target_evidence/data/plots/cellxgene_${d}.celltype_harmonization.* /nfs/team205/ed6/bin/sc_target_evidence/data/plots/${d}_*
 # done
 
-# ## Run DE analysis 
-# for d in $de_ready_disease_ids; do \
-#     echo "python run_de_ct.py ${d}" | bsub -G teichlab -q long -o logfile-de-ct-%J.out -e logfile-de-ct-%J.err -M50000 -R "select[mem>50000] rusage[mem=50000]"
+## Run DE analysis 
+for d in $de_ready_tissue_ids; do \
+    echo "python run_de_ct.py ${d}" | bsub -G teichlab -q normal -o logfile-de-ct-%J.out -e logfile-de-ct-%J.err -M50000 -R "select[mem>50000] rusage[mem=50000]"
+done
 #         echo "python run_de_disease.py ${d}" | bsub -G teichlab -q long -o logfile-de-disease-%J.out -e logfile-de-disease-%J.err -M50000 -R "select[mem>50000] rusage[mem=50000]"
-# done
+
 
 
 
